@@ -19,53 +19,53 @@ class Config(object):
         # import dict
         self._config = json.load(open(config_path, "r"))
 
-        self.args = dict()  # arguments, like table path, delimiter, etc
-        self.metrics = []  # list of metrics
+        self._args = dict()  # arguments, like table path, delimiter, etc
 
         assert type(self._config) is dict, "Config file should contain a dictionary."
 
-        # store args in self.args, metrics in self.metrics
+        # store _args in self._args, metrics in self.metrics
         self._process__args(self._config)
         self._process_metrics(self._config["metrics"])
-        self.args["metrics"] = self._config["metrics"]
+        self._args["metrics"] = self._config["metrics"]
 
-        if self.args["verbose"]:
+        if self._args["verbose"]:
             self._announce_config()
 
     def _announce_config(self):
         print("Running with the following configuration:")
-        for arg in sorted(self.args):
-            print("%s: %s" % (arg, self.args[arg] if arg != "metrics" else len(self.args[arg])))
+        for arg in sorted(self._args):
+            print("%s: %s" % (arg, self._args[arg] if arg != "metrics" else len(self._args[arg])))
 
-    def _process_metrics(self, metrics_dict):
+    @staticmethod
+    def _process_metrics(metrics):
         """
-        Given a list of metrics wich is are in dict form, check for their correctness, this will rise
+        Given a list of metrics wich are in dicts,  check for their correctness, this will rise
         an assertion error if any incorrectness is met
-        :param metrics_dict: List of metrics in dict form.
+        :param metrics: List of metrics in dict form.
         """
         allowed_metrics = ["completeness", "freshness", "timeliness", "deduplication", "constraint", "rule",
                            "groupRule"]
-        for i, metric in enumerate(metrics_dict):
+        for i, metric in enumerate(metrics):
             # check that is has a metric name and that the name is allowed
-            assert "metric" in metric, "Metric %i has no 'metric' field" % i
+            assert type(metric) is dict and "metric" in metric, "Metric %i has no 'metric' field" % i
             name = metric["metric"]
             assert name in allowed_metrics, "Metric %i '%s' is unknown." % (i + 1, name)
 
             error_msg = "Erroneous definition in metric %i" % (i + 1)
             if name == "completeness":
-                self._completeness_check(metric, error_msg)
+                Config._completeness_check(metric, error_msg)
             elif name == "freshness":
-                self._freshness_check(metric, error_msg)
+                Config._freshness_check(metric, error_msg)
             elif name == "timeliness":
-                self._timeliness_check(metric, error_msg)
+                Config._timeliness_check(metric, error_msg)
             elif name == "deduplication":
-                self._deduplication_check(metric, error_msg)
+                Config._deduplication_check(metric, error_msg)
             elif name == "constraint":
-                self._constraint_check(metric, error_msg)
+                Config._constraint_check(metric, error_msg)
             elif name == "rule":
-                self._rule_check(metric, error_msg)
+                Config._rule_check(metric, error_msg)
             elif name == "groupRule":
-                self._grouprule_check(metric, error_msg)
+                Config._grouprule_check(metric, error_msg)
 
     @staticmethod
     def _completeness_check(metric, error_msg):
@@ -261,7 +261,7 @@ class Config(object):
         :param config: Dict with config parameters of the program.
         """
 
-        # check for unknown args
+        # check for unknown _args
         allowed_args = ["table", "inferSchema", "output", "metrics", "delimiter", "header", "threads", "verbose"]
         for key in config:
             assert key in allowed_args, "Argument '%s' is unknown." % key
@@ -269,18 +269,18 @@ class Config(object):
         # check required arguments
         assert "table" in config, "Missing tablePath in _config file."
         assert type(config["table"]) is str, "table should be a string representing the path/url/source."
-        self.args["table"] = config["table"]
+        self._args["table"] = config["table"]
 
         assert "inferSchema" in config, "Missing inferSchema in _config file."
         assert type(config["inferSchema"]) is bool, "inferSchema should be a boolean."
-        self.args["inferSchema"] = config["inferSchema"]
+        self._args["inferSchema"] = config["inferSchema"]
 
         assert "output" in config, "Missing output in _config file."
         assert type(config["output"]) is str, "output should be a string representing the path where results " \
                                               "should be saved. "
         # check that output can be written
         assert os.access(os.path.dirname(config["output"]), os.W_OK), "Cannot write to output path."
-        self.args["output"] = config["output"]
+        self._args["output"] = config["output"]
 
         assert "metrics" in config, "Missing metrics list in _config file"
         assert type(config["metrics"]) is list, "metrics should be mapped to a list of metrics"
@@ -289,27 +289,27 @@ class Config(object):
         # check optional arguments
         if "delimiter" in config:
             assert type(config["delimiter"]) is str
-            self.args["delimiter"] = config["delimiter"]
+            self._args["delimiter"] = config["delimiter"]
         else:
-            self.args["delimiter"] = ","
+            self._args["delimiter"] = ","
 
         if "header" in config:
             assert type(config["header"]) is bool
-            self.args["header"] = config["header"]
+            self._args["header"] = config["header"]
         else:
-            self.args["header"] = True
+            self._args["header"] = True
 
         if "threads" in config:
             assert type(config["threads"]) is int
-            self.args["threads"] = config["threads"]
+            self._args["threads"] = config["threads"]
         else:
-            self.args["threads"] = "1"
+            self._args["threads"] = "1"
 
         if "verbose" in config:
             assert type(config["verbose"]) is bool
-            self.args["verbose"] = config["verbose"]
+            self._args["verbose"] = config["verbose"]
         else:
-            self.args["verbose"] = False
+            self._args["verbose"] = False
 
     def __getitem__(self, item):
         """
@@ -317,4 +317,4 @@ class Config(object):
         :param item: Key to retrieve item (i.e. the table path)
         :return: Item mapped to Key, an exception is returned if not present.
         """
-        return self.args[item]
+        return self._args[item]
