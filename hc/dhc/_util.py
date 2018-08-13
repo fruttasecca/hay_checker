@@ -6,19 +6,19 @@ the metric to compute and column types, etc.
 __possible_digits = ["D", "d", "M", "m", "Y", "y", "H", "h", "M", "m", "S", "s"]
 
 
-def __completeness_check(df, columns=None):
+def _completeness_check(columns, df):
     if columns is not None:
         for col in columns:
             assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
 
 
-def __deduplication_check(df, columns=None):
+def _deduplication_check(columns, df):
     if columns is not None:
         for col in columns:
             assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
 
 
-def __timeliness_check(df, columns, value, format):
+def _timeliness_check(columns, value, format, df):
     for col in columns:
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
     assert len(value) == len(format), "Value %s and format %s have different length" % (value, format)
@@ -33,6 +33,6 @@ def __timeliness_check(df, columns, value, format):
             i, value, i, format)
 
 
-def __freshness_check(df, columns, format):
+def _freshness_check(columns, format, df):
     for col in columns:
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
