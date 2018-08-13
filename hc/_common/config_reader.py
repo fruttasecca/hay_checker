@@ -11,8 +11,6 @@ import re  # to __util on values for date or time formats
 
 class Config(object):
     # format : regex that the value must match
-    __allowed_date_formats = {"dd/mm/YYYY": "\d\d/\d\d/\d\d\d\d", "dd/mm/yyyy" : "\d\d/\d\d/d\d\d\d"}
-    __allowed_time_formats = {"HH:MM:ss": "\d\d:\d\d:\d\d", "HH:mm:ss": "\d\d:\d\d:\d\d"}
     __allowed_operators = ["eq", "gt", "lt"]
 
     def __init__(self, config_path):
@@ -104,11 +102,6 @@ class Config(object):
             for col in columns:
                 assert type(col) is int or type(col) is str, error_msg
 
-        # __util date/time format for validity
-        if "dateFormat" in metric:
-            assert metric["dateFormat"] in Config.__allowed_date_formats, error_msg
-        else:
-            assert metric["timeFormat"] in Config.__allowed_time_formats, error_msg
 
     @staticmethod
     def _timeliness_check(metric, error_msg):
@@ -130,13 +123,6 @@ class Config(object):
             for col in columns:
                 assert type(col) is int or type(col) is str, error_msg
 
-        # __util date/time format and value for validity
-        if "dateFormat" in metric:
-            assert metric["dateFormat"] in Config.__allowed_date_formats, error_msg
-            assert bool(re.match(Config.__allowed_date_formats[metric["dateFormat"]], metric["value"])), error_msg
-        else:
-            assert metric["timeFormat"] in Config.__allowed_time_formats, error_msg
-            assert bool(re.match(Config.__allowed_time_formats[metric["timeFormat"]], metric["value"])), error_msg
 
     @staticmethod
     def _deduplication_check(metric, error_msg):
