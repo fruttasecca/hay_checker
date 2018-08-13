@@ -23,15 +23,14 @@ class _Task(object):
     def __run(self, metrics_list, df):
         """
         Method that must be implemented by classes extending _Task, given a list containing the metrics to run,
-        returns the list of metrics with an added key, their result.
-        Both input and output dict must be independent from the framework actually running the computation (spark, etc.).
+        returns the list of metrics with an added key (scores), their result.
         Eventual checks on the existence of columns with a certain name, format of values etc, are left to this method,
-        same for checks on checks on the df, like the type, etc.
+        same for checks on the df, like the type, etc.
         :param metrics_list: List containing metrics to run, each metric is itself a dict where keys are parameters,
         mapped to their values, as in the jscon config file.
         :param df: Dataframe on which to run the task.
-        :return: Dict containing results.
-        TODO: Expand on the dict returned.
+        :return: A list of metrics that are the same as the metrics passed in the input, each metric will have new
+        field named 'scores', containing the related result.
         """
         raise NotImplementedError
 
@@ -51,16 +50,10 @@ class _Task(object):
         """
         Run the task on a given dataframe.
         :param df: Dataframe on which to run the task.
-        :return: List of metrics with an hadded
+        :return: List of metrics with a "scores" field added.
         """
-        filtered_metrics = self.__filter_metrics(self.__metrics)
-        raw_results = self.__run(filtered_metrics, df)
-        # assert type(raw_results) is dict, "__Run is not returning a dict as required."
-        output = self._format_results(raw_results)
-        return output
-
-    def _format_results(self, raw_results):
-        return raw_results
+        results = self.__run(self.__metrics, df)
+        return results
 
     def add(self, input):
         """
@@ -80,13 +73,5 @@ class _Task(object):
             # metrics should already have been processed, no need to check here
             self.__metrics.extend(input.__metrics)
 
-    def __filter_metrics(self, metrics_list):
-        """
-        Filters metrics, checking for repetitions and removing them, etc.
-        :param metrics_list: List of metrics.
-        :return: A dict having as keys metrics types ('completeness', etc), mapped to lists of stuff to do.
-        TODO: Expand on the dict returned.
-        """
-        return metrics_list
 
 
