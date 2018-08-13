@@ -46,14 +46,16 @@ class Task(_Task):
                 needs_count_all = True
                 columns = metric.get("columns")
                 value = metric.get("value")
-                format = metric.get("dateFormat", metric.get("timeFormat"))
-                util._timeliness_check(columns, value, format, df)
-                todo.extend(m._timeliness_todo(columns, value, format, df))
+                dateFormat = metric.get("dateFormat", None)
+                timeFormat = metric.get("timeFormat", None)
+                util._timeliness_check(columns, value, df, dateFormat, timeFormat)
+                todo.extend(m._timeliness_todo(columns, value, df, dateFormat, timeFormat))
             elif metric["metric"] == "freshness":
                 columns = metric.get("columns")
-                format = metric.get("dateFormat", metric.get("timeFormat"))
-                util._freshness_check(columns, format, df)
-                todo.extend(m._freshness_todo(columns, format, df))
+                dateFormat = metric.get("dateFormat", None)
+                timeFormat = metric.get("timeFormat", None)
+                util._freshness_check(columns, df, dateFormat, timeFormat)
+                todo.extend(m._freshness_todo(columns, df, dateFormat, timeFormat))
             else:
                 print("Metric %s not recognized" % metric["metric"])
                 exit()

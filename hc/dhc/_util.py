@@ -1,6 +1,7 @@
 """
 Checks like consistency between
 the metric to compute and column types, etc.
+TODO: add all the possible digits or remove this check to allow the full usage of simple date time
 """
 
 __possible_digits = ["D", "d", "M", "m", "Y", "y", "H", "h", "M", "m", "S", "s"]
@@ -18,7 +19,12 @@ def _deduplication_check(columns, df):
             assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
 
 
-def _timeliness_check(columns, value, format, df):
+def _timeliness_check(columns, value, df, dateFormat=None, timeFormat=None):
+    assert (dateFormat is None or timeFormat is None) and (
+            not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, " \
+                                                               "not both. "
+
+    format = dateFormat if dateFormat else timeFormat
     for col in columns:
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
     assert len(value) == len(format), "Value %s and format %s have different length" % (value, format)
@@ -33,6 +39,6 @@ def _timeliness_check(columns, value, format, df):
             i, value, i, format)
 
 
-def _freshness_check(columns, format, df):
+def _freshness_check(columns, df, dateformat=None, timeFormat=None):
     for col in columns:
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
