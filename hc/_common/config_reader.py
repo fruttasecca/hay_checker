@@ -5,14 +5,14 @@ to specific data conditions to be checked for quality.
 """
 
 import json
-import os  # to check on paths
-import re  # to check on values for date or time formats
+import os  # to __util on paths
+import re  # to __util on values for date or time formats
 
 
 class Config(object):
     # format : regex that the value must match
-    __allowed_date_formats = {"dd/mm/YYYY": "\d\d/\d\d/\d\d\d\d"}
-    __allowed_time_formats = {"HH:MM:ss": "\d\d:\d\d:\d\d"}
+    __allowed_date_formats = {"dd/mm/YYYY": "\d\d/\d\d/\d\d\d\d", "dd/mm/yyyy" : "\d\d/\d\d/d\d\d\d"}
+    __allowed_time_formats = {"HH:MM:ss": "\d\d:\d\d:\d\d", "HH:mm:ss": "\d\d:\d\d:\d\d"}
     __allowed_operators = ["eq", "gt", "lt"]
 
     def __init__(self, config_path):
@@ -39,14 +39,14 @@ class Config(object):
     @staticmethod
     def _process_metrics(metrics):
         """
-        Given a list of metrics wich are in dicts,  check for their correctness, this will rise
+        Given a list of metrics wich are in dicts,  __util for their correctness, this will rise
         an assertion error if any incorrectness is met
         :param metrics: List of metrics in dict form.
         """
         allowed_metrics = ["completeness", "freshness", "timeliness", "deduplication", "constraint", "rule",
                            "groupRule"]
         for i, metric in enumerate(metrics):
-            # check that is has a metric name and that the name is allowed
+            # __util that is has a metric name and that the name is allowed
             assert type(metric) is dict and "metric" in metric, "Metric %i has no 'metric' field" % i
             name = metric["metric"]
             assert name in allowed_metrics, "Metric %i '%s' is unknown." % (i + 1, name)
@@ -97,14 +97,14 @@ class Config(object):
         assert len(metric) == 3 and "columns" in metric and (
                 "dateFormat" in metric or "timeFormat" in metric), error_msg
 
-        # check columns for validity
+        # __util columns for validity
         columns = metric["columns"]
         assert type(columns) is list or type(columns) is str, error_msg
         if type(columns) is list:
             for col in columns:
                 assert type(col) is int or type(col) is str, error_msg
 
-        # check date/time format for validity
+        # __util date/time format for validity
         if "dateFormat" in metric:
             assert metric["dateFormat"] in Config.__allowed_date_formats, error_msg
         else:
@@ -123,14 +123,14 @@ class Config(object):
         assert len(metric) == 4 and "columns" in metric and (
                 "dateFormat" in metric or "timeFormat" in metric) and "value" in metric, error_msg
 
-        # check columns for validity
+        # __util columns for validity
         columns = metric["columns"]
         assert type(columns) is list or type(columns) is str, error_msg
         if type(columns) is list:
             for col in columns:
                 assert type(col) is int or type(col) is str, error_msg
 
-        # check date/time format and value for validity
+        # __util date/time format and value for validity
         if "dateFormat" in metric:
             assert metric["dateFormat"] in Config.__allowed_date_formats, error_msg
             assert bool(re.match(Config.__allowed_date_formats[metric["dateFormat"]], metric["value"])), error_msg
@@ -167,19 +167,19 @@ class Config(object):
         assert "when" in metric and "then" in metric, error_msg
         assert len(metric) == 3 or (len(metric) == 4 and "conditions" in metric), error_msg
 
-        # check on when field
+        # __util on when field
         when = metric["when"]
         assert type(when) is list, error_msg
         for w in when:
             assert type(w) is int or type(w) is str, error_msg
 
-        # check on then field
+        # __util on then field
         then = metric["then"]
         assert type(then) is list, error_msg
         for t in then:
             assert type(t) is int or type(t) is str, error_msg
 
-        # check on conditions if there are
+        # __util on conditions if there are
         if "conditions" in metric:
             conditions = metric["conditions"]
             assert type(conditions) is list, error_msg
@@ -223,14 +223,14 @@ class Config(object):
         assert "columns" in metric and "conditions" in metric, error_msg
         assert len(metric) == 3 or (len(metric) == 4 and "having"), error_msg
 
-        # check columns for validity
+        # __util columns for validity
         columns = metric["columns"]
         assert type(columns) is list or type(columns) is str, error_msg
         if type(columns) is list:
             for col in columns:
                 assert type(col) is int or type(col) is str, error_msg
 
-        # check 'having' conditions
+        # __util 'having' conditions
         having = metric["having"]
         assert type(having) is list, error_msg
         for have in having:
@@ -240,7 +240,7 @@ class Config(object):
                     type(have["operator"]) is str and have["operator"] in Config.__allowed_operators), error_msg
             assert "value" in have and (type(have["value"]) is str or type(have["value"]) is int)
 
-        # check conditions
+        # __util conditions
         conditions = metric["conditions"]
         assert type(conditions) is list, error_msg
         for cond in conditions:
@@ -252,7 +252,7 @@ class Config(object):
 
     def _process__args(self, config):
         """
-        Given a dict containing the configuration to run with, this method is going to check the
+        Given a dict containing the configuration to run with, this method is going to __util the
         arguments and assign them to the class instance internal dict if they are valid, otherwise the program will
         stop running through an assertion error.
         Required arguments (table, inferSchema, output, metrics) have no default value, optional arguments
@@ -261,12 +261,12 @@ class Config(object):
         :param config: Dict with config parameters of the program.
         """
 
-        # check for unknown _args
+        # __util for unknown _args
         allowed_args = ["table", "inferSchema", "output", "metrics", "delimiter", "header", "threads", "verbose"]
         for key in config:
             assert key in allowed_args, "Argument '%s' is unknown." % key
 
-        # check required arguments
+        # __util required arguments
         assert "table" in config, "Missing tablePath in _config file."
         assert type(config["table"]) is str, "table should be a string representing the path/url/source."
         self._args["table"] = config["table"]
@@ -278,7 +278,7 @@ class Config(object):
         assert "output" in config, "Missing output in _config file."
         assert type(config["output"]) is str, "output should be a string representing the path where results " \
                                               "should be saved. "
-        # check that output can be written
+        # __util that output can be written
         assert os.access(os.path.dirname(config["output"]), os.W_OK), "Cannot write to output path."
         self._args["output"] = config["output"]
 
@@ -286,7 +286,7 @@ class Config(object):
         assert type(config["metrics"]) is list, "metrics should be mapped to a list of metrics"
         assert len(config["metrics"]), "metrics list is empty"
 
-        # check optional arguments
+        # __util optional arguments
         if "delimiter" in config:
             assert type(config["delimiter"]) is str
             self._args["delimiter"] = config["delimiter"]

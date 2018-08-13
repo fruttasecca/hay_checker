@@ -69,9 +69,10 @@ class _Task(object):
         elif type(input) is dict:
             Config._process_metrics([input])
             self.__metrics.append(input)
-        elif type(input) is _Task:
+        elif isinstance(input, _Task):
             # metrics should already have been processed, no need to check here
             self.__metrics.extend(input.__metrics)
+        return self
 
 
 
