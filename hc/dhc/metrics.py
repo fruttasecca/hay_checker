@@ -189,5 +189,10 @@ def freshness(columns, df=None, dateFormat=None, timeFormat=None):
         # if df is specified run now
         check._freshness_check(columns, df, dateFormat, timeFormat)
         todo = _freshness_todo(columns, df, dateFormat, timeFormat)
-        result = df.agg(*todo).collect()[0]
-        return list(result)
+        result = list(df.agg(*todo).collect()[0])
+        if dateFormat:
+            result = [int(res) for res in result]
+        else:
+            result = [check._seconds_to_timeFormat(res) for res in result]
+
+        return result

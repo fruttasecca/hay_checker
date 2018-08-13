@@ -114,7 +114,11 @@ class Task(_Task):
                 for _ in range(ncolumns):
                     scores.append((collected[index]))
                     index += 1
-                metric["scores"] = scores
+                if "dateFormat" in metric:
+                    metric["scores"] = [int(score) for score in scores]
+                elif "timeFormat" in metric:
+                    metric["scores"] = [util._seconds_to_timeFormat(score) for score in scores]
+
             else:
                 print("Metric %s not recognized" % metric["metric"])
                 exit()

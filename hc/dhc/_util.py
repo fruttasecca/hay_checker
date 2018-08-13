@@ -32,13 +32,19 @@ def _timeliness_check(columns, value, df, dateFormat=None, timeFormat=None):
         if fchar in __possible_digits:
             # then vchar must be a digit
             assert vchar.isdigit(), "Character at position %s in %s is not a digit but it should be, given the format %s" % (
-            i, value, format)
+                i, value, format)
         else:
             # else it's a separator like ':' for HH:MM:ss
             assert vchar == fchar, "Character at position %s in %s should be the same at position %s in %s" % (
-            i, value, i, format)
+                i, value, i, format)
 
 
 def _freshness_check(columns, df, dateformat=None, timeFormat=None):
     for col in columns:
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
+
+
+def _seconds_to_timeFormat(seconds):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    return "%02d:%02d:%02d" % (h, m, s)
