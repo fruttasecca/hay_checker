@@ -102,7 +102,6 @@ class Config(object):
             for col in columns:
                 assert type(col) is int or type(col) is str, error_msg
 
-
     @staticmethod
     def _timeliness_check(metric, error_msg):
         """
@@ -122,7 +121,6 @@ class Config(object):
         if type(columns) is list:
             for col in columns:
                 assert type(col) is int or type(col) is str, error_msg
-
 
     @staticmethod
     def _deduplication_check(metric, error_msg):
@@ -173,8 +171,9 @@ class Config(object):
                 assert type(cond) is dict and len(cond) == 3, error_msg
                 assert "column" in cond and (type(cond["column"]) is str or type(cond["column"]) is int)
                 assert "operator" in cond and (
-                            type(cond["operator"]) is str and cond["operator"] in Config.__allowed_operators), error_msg
-                assert "value" in cond and (type(cond["value"]) is str or type(cond["value"]) is int)
+                        type(cond["operator"]) is str and cond["operator"] in Config.__allowed_operators), error_msg
+                assert "value" in cond and (
+                            type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"] is float))
 
     @staticmethod
     def _rule_check(metric, error_msg):

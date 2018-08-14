@@ -44,16 +44,45 @@ def generate_df(rows, val, completeness, deduplication, before_date, before_time
         shuffle(time)
         df["time%i" % i] = time
 
+    # do constraints, respected
+    fc1 = [10 for _ in range(rows)]
+    fc2 = [20 for _ in range(rows)]
+    fc3 = [30 for _ in range(rows)]
+    for i in range(val):
+        fc1[i] = 100
+        fc2[i] = 200
+        fc3[i] = 300
+    df["fc1"] = fc1
+    df["fc2"] = fc2
+    df["fc3"] = fc3
+
+    # do constraints, not fully respected
+    fc4 = [10 for _ in range(rows)]
+    fc5 = [20 for _ in range(rows)]
+    fc6 = [30 for _ in range(rows)]
+    for i in range(val):
+        fc4[i] = 100
+        fc5[i] = 200
+        fc6[i] = 300
+    fc6[0] = 1000
+    df["fc4"] = fc4
+    df["fc5"] = fc5
+    df["fc6"] = fc6
+
     # expected values
     exc = (rows - val) / rows
     edup = val / rows
     ebdate = val / rows
     ebtime = val / rows
+    exfc1 = 1.
+    exfc2 = (rows - val) / rows
     print("expected")
-    print("completeness %s" % exc)
-    print("deduplication %s" % edup)
-    print("before date %s" % ebdate)
-    print("before time %s" % ebtime)
+    print("completeness %s" % (exc * 100))
+    print("deduplication %s" % (edup * 100))
+    print("before date %s" % (ebdate * 100))
+    print("before time %s" % (ebtime * 100))
+    print("functional constraint1 %s" % (exfc1 * 100))
+    print("functional constraint2 %s" % (exfc2 * 100))
 
     return df
 
@@ -67,5 +96,5 @@ def save(df, name, format):
         df.to_parquet(name + ".parquet", compression="UNCOMPRESSED")
 
 
-# df = generate_df(10000000, 500000, 2, 2, 2, 2)
-# save(df, "data", "parquet")
+df = generate_df(5000000, 500000, 2, 2, 2, 2)
+save(df, "data", "csv")
