@@ -10,7 +10,7 @@ from operator import itemgetter
 from pyspark.sql.functions import count
 
 from .._common._task import _Task
-from . import _util as util
+from . import _runtime_checks as util
 from . import metrics as m
 
 
@@ -125,8 +125,9 @@ class Task(_Task):
             todo.append(count("*"))
 
         # run and add results to the simple metrics
-        collected = df.agg(*todo).collect()[0]
-        self._add_scores_to_metrics(simple_metrics, collected, needs_count_all, df)
+        if len(simple_metrics) > 0:
+            collected = df.agg(*todo).collect()[0]
+            self._add_scores_to_metrics(simple_metrics, collected, needs_count_all, df)
 
         # run constraints, one at a time
         for constraint in constraints:
