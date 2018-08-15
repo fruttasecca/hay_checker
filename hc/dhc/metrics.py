@@ -12,7 +12,7 @@ from pyspark.sql.functions import isnan, when, count, col, sum, countDistinct, a
     abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date
 
 from . import task
-from . import _util as check
+from . import _runtime_checks as check
 from .._common._util import seconds_to_time_format
 from .._common.config import Config
 
