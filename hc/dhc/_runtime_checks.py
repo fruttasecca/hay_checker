@@ -45,7 +45,6 @@ def timeliness_run_check(columns, value, df, dateFormat=None, timeFormat=None):
             not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, " \
                                                                "not both. "
 
-    format = dateFormat if dateFormat else timeFormat
     for col in columns:
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
 
@@ -75,6 +74,7 @@ def constraint_run_check(when, then, conditions, df):
     allwhenthen = when + then
     for c in allwhenthen:
         assert not (c in when and c in then), "Column '%s' is in both when and then fields" % c
+        assert c in df.columns, "Column '%s' is not in the dataframe" % c
 
     if conditions:
         assert type(conditions) is list, "Conditions should be a list of dictionaries."
