@@ -5,12 +5,13 @@ on different data.
 """
 
 import copy
+from operator import itemgetter
 
 from pyspark.sql.functions import count
 
-from hc._common._task import _Task as _Task
-from hc.dhc import _util as util
-from hc.dhc import metrics as m
+from .._common._task import _Task as _Task
+from . import _util as util
+from . import metrics as m
 
 
 class Task(_Task):
@@ -24,50 +25,135 @@ class Task(_Task):
         """
         super().__init__(metrics_params)
 
-    def __run(self, metrics, df):
-        todo = []
-        needs_count_all = False
-        """
-        For each metric __util params then add the computation to do
-        to the list.
-        """
+    @staticmethod
+    def _perform_run_checks(metrics, df):
         for metric in metrics:
             if metric["metric"] == "completeness":
-                needs_count_all = True
                 columns = metric.get("columns", None)
-                util._completeness_check(columns, df)
-                todo.extend(m._completeness_todo(columns, df))
+                util.completeness_run_check(columns, df)
             elif metric["metric"] == "deduplication":
+                columns = metric.get("columns", None)
+                util.deduplication_run_check(columns, df)
+            elif metric["metric"] == "timeliness":
+                columns = metric.get("columns")
+                value = metric.get("value")
+                dateFormat = metric.get("dateFormat", None)
+                timeFormat = metric.get("timeFormat", None)
+                util.timeliness_run_check(columns, value, df, dateFormat, timeFormat)
+            elif metric["metric"] == "freshness":
+                columns = metric.get("columns")
+                dateFormat = metric.get("dateFormat", None)
+                timeFormat = metric.get("timeFormat", None)
+                util.freshness_run_check(columns, df, dateFormat, timeFormat)
+            elif metric["metric"] == "rule":
+                conditions = metric["conditions"]
+                util.rule_run_check(conditions, df)
+            elif metric["metric"] == "constraint":
+                when = metric["when"]
+                then = metric["then"]
+                conditions = metric.get("conditions", None)
+                util.constraint_run_check(when, then, conditions, df)
+            elif metric["metric"] == "groupRule":
+                columns = metric["columns"]
+                conditions = metric.get("conditions", None)
+                having = metric["having"]
+                util.grouprule_run_check(columns, conditions, having, df)
+            else:
+                print("Metric %s not recognized" % metric["metric"])
+                exit()
+
+    def __run(self, metrics, df):
+        """
+        For each metric check params then add the computation to do
+        to the list.
+        """
+        metrics = copy.deepcopy(metrics)
+        # run time checks on every metric befor starting
+        self._perform_run_checks(metrics, df)
+
+        # get stuff to do for metrics that can be run together in a single pass
+        todo = []
+        needs_count_all = False
+        simple_metrics = []
+        grouprules = []
+        constraints = []
+
+        for i, metric in enumerate(metrics):
+            if metric["metric"] == "completeness":
+                metric["_task_id"] = i
                 needs_count_all = True
                 columns = metric.get("columns", None)
-                util._deduplication_check(columns, df)
+                todo.extend(m._completeness_todo(columns, df))
+                simple_metrics.append(metric)
+            elif metric["metric"] == "deduplication":
+                metric["_task_id"] = i
+                needs_count_all = True
+                columns = metric.get("columns", None)
                 todo.extend(m._deduplication_todo(columns, df))
+                simple_metrics.append(metric)
             elif metric["metric"] == "timeliness":
+                metric["_task_id"] = i
                 needs_count_all = True
                 columns = metric.get("columns")
                 value = metric.get("value")
                 dateFormat = metric.get("dateFormat", None)
                 timeFormat = metric.get("timeFormat", None)
-                util._timeliness_check(columns, value, df, dateFormat, timeFormat)
                 todo.extend(m._timeliness_todo(columns, value, df, dateFormat, timeFormat))
+                simple_metrics.append(metric)
             elif metric["metric"] == "freshness":
+                metric["_task_id"] = i
                 columns = metric.get("columns")
                 dateFormat = metric.get("dateFormat", None)
                 timeFormat = metric.get("timeFormat", None)
-                util._freshness_check(columns, df, dateFormat, timeFormat)
                 todo.extend(m._freshness_todo(columns, df, dateFormat, timeFormat))
-            else:
-                print("Metric %s not recognized" % metric["metric"])
-                exit()
+                simple_metrics.append(metric)
+            elif metric["metric"] == "rule":
+                metric["_task_id"] = i
+                needs_count_all = True
+                conditions = metric["conditions"]
+                todo.extend(m._rule_todo(conditions))
+                simple_metrics.append(metric)
+            elif metric["metric"] == "constraint":
+                metric["_task_id"] = i
+                constraints.append(metric)
+            elif metric["metric"] == "groupRule":
+                metric["_task_id"] = i
+                grouprules.append(metric)
+
         if needs_count_all:
             todo.append(count("*"))
-        collected = df.agg(*todo).collect()[0]
-        results = self._map_results_to_metrics(metrics, collected, needs_count_all, df)
-        return results
 
-    def _map_results_to_metrics(self, metrics, collected, has_count_all, df):
+        # run and add results to first metrics
+        collected = df.agg(*todo).collect()[0]
+        self._add_scores_to_metrics(simple_metrics, collected, needs_count_all, df)
+
+        # run constraints, one at a time
+        for constraint in constraints:
+            when = constraint["when"]
+            then = constraint["then"]
+            conditions = constraint.get("conditions", None)
+            todo = m._constraint_todo(when, then, conditions, df)
+            # get first row, first element of that row, multiply by 100:w
+            constraint["scores"] = [list(todo.collect()[0])[0] * 100]
+
+        # run groupRule, one at a time
+        for grouprule in grouprules:
+            columns = grouprule["columns"]
+            having = grouprule["having"]
+            conditions = grouprule.get("conditions", None)
+            todo = m._grouprule_todo(columns, conditions, having, df)
+            grouprule["scores"] = [list(todo.collect()[0])[0] * 100]
+
+        # sort metrics and return them after removing the id
+        metrics = simple_metrics + constraints + grouprules
+        metrics = sorted(metrics, key=itemgetter('_task_id'))
+        for metric in metrics:
+            del metric["_task_id"]
+        return metrics
+
+    @staticmethod
+    def _add_scores_to_metrics(metrics, collected, has_count_all, df):
         index = 0
-        metrics = copy.deepcopy(metrics)
         total_rows = collected[-1] if has_count_all else None
         total_columns = len(df.columns)
 
@@ -118,9 +204,8 @@ class Task(_Task):
                     metric["scores"] = [int(score) for score in scores]
                 elif "timeFormat" in metric:
                     metric["scores"] = [util._seconds_to_timeFormat(score) for score in scores]
-
-            else:
-                print("Metric %s not recognized" % metric["metric"])
-                exit()
+            elif metric["metric"] == "rule":
+                scores = [(collected[index] / total_rows) * 100]
+                index += 1
+                metric["scores"] = scores
         return metrics
-
