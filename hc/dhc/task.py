@@ -9,7 +9,7 @@ from operator import itemgetter
 
 from pyspark.sql.functions import count
 
-from .._common._task import _Task as _Task
+from .._common._task import _Task
 from . import _util as util
 from . import metrics as m
 
@@ -62,19 +62,20 @@ class Task(_Task):
                 print("Metric %s not recognized" % metric["metric"])
                 exit()
 
-    def __run(self, metrics, df):
+    def run(self, df):
         """
-        For each metric check params then add the computation to do
-        to the list.
+        For each metric check parameter for run time correctness (i.e. column with those name
+         existing in the df, etc.), then perform the required computations.
         """
-        metrics = copy.deepcopy(metrics)
-        # run time checks on every metric befor starting
+        metrics = copy.deepcopy(self._metrics)
+        # run time checks on every metric before starting
         self._perform_run_checks(metrics, df)
 
         # get stuff to do for metrics that can be run together in a single pass
         todo = []
-        needs_count_all = False
-        simple_metrics = []
+        needs_count_all = False  # if this metrics requires a count('*') to be performed
+        simple_metrics = []  # these will be run in a single pass, together
+        # these will be run one at a time
         grouprules = []
         constraints = []
 
@@ -123,7 +124,7 @@ class Task(_Task):
         if needs_count_all:
             todo.append(count("*"))
 
-        # run and add results to first metrics
+        # run and add results to the simple metrics
         collected = df.agg(*todo).collect()[0]
         self._add_scores_to_metrics(simple_metrics, collected, needs_count_all, df)
 

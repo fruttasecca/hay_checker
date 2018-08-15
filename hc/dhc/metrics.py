@@ -1,22 +1,30 @@
 """
-Module containing metrics for the distributed
-version of hay_checker,
+Module containing metrics for the distributed version of hay_checker.
 TODO: check if its possible to ignore the year, month, day of timestamps, to
 make timeliness/freshness more handy while using timeFormat
 TODO format results to hours, days, minutes whatever
 """
 
-from . import task
-from . import _util as check
+from datetime import datetime
 
 import pyspark
 from pyspark.sql.functions import isnan, when, count, col, sum, countDistinct, avg, to_date, lit, \
     abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date
-from datetime import datetime
-from pyspark.sql.types import DataType
+
+from . import task
+from . import _util as check
+from .._common._util import seconds_to_time_format
+from .._common.config import Config
 
 
 def _completeness_todo(columns, df):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param columns:
+    :param df:
+    :return: Pyspark columns representing what to compute.
+    """
     if columns is None:
         columns = df.columns
     todo = [count(col(c)).alias(c) for c in columns]
@@ -24,15 +32,32 @@ def _completeness_todo(columns, df):
 
 
 def completeness(columns=None, df=None):
+    """
+    If a df is passed, the completeness metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param columns: Columns on which to run the metric, None to run the completeness
+    metric on the whole table.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
+
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "completeness"}
+    if not (columns is None):
+        params["columns"] = columns
+
     if df is None:
         # if no df specified create a task that contains this parameters
-        params = {"metric": "completeness"}
-        if not (columns is None):
-            params["columns"] = columns
         return task.Task([params])
     else:
         # if df is specified run now
+        Config._completeness_params_check(params, "Erroneous parameters")
         check.completeness_run_check(columns, df)
+
         todo = _completeness_todo(columns, df)
         todo.append(count("*"))  # get number of rows, used to normalize
         collected = list(df.agg(*todo).collect()[0])
@@ -50,6 +75,13 @@ def completeness(columns=None, df=None):
 
 
 def _deduplication_todo(columns, df):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param columns:
+    :param df:
+    :return: Pyspark columns representing what to compute.
+    """
     if columns is None:
         columns = df.columns
     if columns is None:
@@ -62,15 +94,31 @@ def _deduplication_todo(columns, df):
 
 
 def deduplication(columns=None, df=None):
+    """
+    If a df is passed, the deduplication metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param columns: Columns on which to run the metric, None to run the deduplication
+    metric on the whole table.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "deduplication"}
+    if not (columns is None):
+        params["columns"] = columns
+
     if df is None:
         # if no df specified create a task that contains this parameters
-        params = {"metric": "deduplication"}
-        if not (columns is None):
-            params["columns"] = columns
         return task.Task([params])
     else:
         # if df is specified run now
+        Config._deduplication_params_check(params, "Erroneous parameters")
         check.deduplication_run_check(columns, df)
+
         todo = _deduplication_todo(columns, df)
         todo.append([count('*')])  # count all rows
 
@@ -84,6 +132,16 @@ def deduplication(columns=None, df=None):
 
 
 def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param columns:
+    :param value
+    :param df:
+    :param dateFormat:
+    :param timeFormat:
+    :return: Pyspark columns representing what to compute.
+    """
     assert (dateFormat is None or timeFormat is None) and (
             not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, " \
                                                                "not both. "
@@ -118,20 +176,41 @@ def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
 
 
 def timeliness(columns, value, df=None, dateFormat=None, timeFormat=None):
+    """
+    If a df is passed, the timeliness metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param columns: Columns on which to run the metric
+    :param value: Value used to run the metric, confronting values in the specified columns against it.
+    :param dateFormat: Format in which the value (and values in columns, if they are of string type) are; used
+    if the value and columns contain dates as strings, or are of date or timestamp type. Either dateFormat
+    or timeFormat must be passed, but not both.
+    :param timeFormat: Format in which the value (and values in columns, if they are of string type) are; used
+    if the value and columns contain times as strings or are of timestamp type. Either dateFormat
+    or timeFormat must be passed, but not both.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
     assert (dateFormat is None or timeFormat is None) and (
-            not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, " \
-                                                               "not both. "
+            not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, not both."
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "timeliness", "columns": columns, "value": value}
+    if dateFormat:
+        params["dateFormat"] = dateFormat
+    elif timeFormat:
+        params["timeFormat"] = timeFormat
+
     if df is None:
         # if no df specified create a task that contains this parameters
-        params = {"metric": "timeliness", "columns": columns, "value": value}
-        if dateFormat:
-            params["dateFormat"] = dateFormat
-        elif timeFormat:
-            params["timeFormat"] = timeFormat
         return task.Task([params])
     else:
         # if df is specified run now
+        Config._timeliness_params_check(params, "Erroneous parameters")
         check.timeliness_run_check(columns, value, df, dateFormat, timeFormat)
+
         todo = _timeliness_todo(columns, value, df, dateFormat, timeFormat)
         todo.append(count('*'))  # count rows
 
@@ -144,6 +223,15 @@ def timeliness(columns, value, df=None, dateFormat=None, timeFormat=None):
 
 
 def _freshness_todo(columns, df, dateFormat=None, timeFormat=None):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param columns:
+    :param df:
+    :param dateFormat:
+    :param timeFormat:
+    :return: Pyspark columns representing what to compute.
+    """
     assert (dateFormat is None or timeFormat is None) and (
             not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, " \
                                                                "not both. "
@@ -178,39 +266,45 @@ def _freshness_todo(columns, df, dateFormat=None, timeFormat=None):
 
 
 def freshness(columns, df=None, dateFormat=None, timeFormat=None):
+    """
+    If a df is passed, the freshness metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param columns: Columns on which to run the metric
+    :param dateFormat: Format in which the values in columns are if those columns are of type string; otherwise they must
+    be of type date or timestamp. Use this parameter if you are interested in a result in terms of days.
+    Either dateFormat or timeFormat must be passed, but not both.
+    :param timeFormat: Format in which the values in columns are if those columns are of type string; otherwise they must
+    be of type timestamp. Use this parameter if you are interested in a result totalling less than a day, shown
+    in a format of HH:mm:ss. Either dateFormat or timeFormat must be passed, but not both.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "freshness", "columns": columns}
+    if dateFormat:
+        params["dateFormat"] = dateFormat
+    elif timeFormat:
+        params["timeFormat"] = timeFormat
+
     if df is None:
         # if no df specified create a task that contains this parameters
-        params = {"metric": "freshness", "columns": columns}
-        if dateFormat:
-            params["dateFormat"] = dateFormat
-        elif timeFormat:
-            params["timeFormat"] = timeFormat
         return task.Task([params])
     else:
         # if df is specified run now
+        Config._freshness_params_check(params, "Erroneous parameters")
         check.freshness_run_check(columns, df, dateFormat, timeFormat)
         todo = _freshness_todo(columns, df, dateFormat, timeFormat)
         result = list(df.agg(*todo).collect()[0])
         if dateFormat:
             result = [int(res) for res in result]
         else:
-            result = [check._seconds_to_timeFormat(res) for res in result]
+            result = [seconds_to_time_format(res) for res in result]
 
         return result
-
-
-_operators_map = {"gt": '>', "lt": "<", "eq": "="}
-
-
-def _and_conditions_as_strings(conditions):
-    result = []
-    conditions = conditions if conditions else []  # empty instead of None
-    for cond in conditions:
-        if type(cond["value"]) == str:
-            result.append("%s %s '%s'" % (cond["column"], _operators_map[cond["operator"]], cond["value"]))
-        else:
-            result.append("%s %s %s" % (cond["column"], _operators_map[cond["operator"]], cond["value"]))
-    return " and ".join(result)
 
 
 def _and_conditions_as_columns(conditions):
@@ -235,6 +329,15 @@ def _and_conditions_as_columns(conditions):
 
 
 def _constraint_todo(when, then, conditions, df):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param when:
+    :param then:
+    :param conditions:
+    :param df:
+    :return: Pyspark columns representing what to compute.
+    """
     todo = df
 
     # filter if needed
@@ -261,14 +364,32 @@ def _constraint_todo(when, then, conditions, df):
 
 
 def constraint(when, then, conditions=None, df=None):
+    """
+    If a df is passed, the constraint metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param when: A list of columns in the df to use as the precondition of a functional constraint. No column
+    should be in both when and then.
+    :param then: A list of columns in the df to use as the postcondition of a functional constraint. No column
+    should be in both when and then.
+    :param conditions: Conditions on which to filter data before applying the metric.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "constraint", "when": when, "then": then}
+    if conditions:
+        params["conditions"] = conditions
+
     if df is None:
         # if no df specified create a task that contains this parameters
-        params = {"metric": "constraint", "when": when, "then": then}
-        if conditions:
-            params["conditions"] = conditions
         return task.Task([params])
     else:
         # if df is specified run now
+        Config._constraint_params_check(params, "Erroneous parameters")
         check.constraint_run_check(when, then, conditions, df)
         todo = _constraint_todo(when, then, conditions, df)
         res = list(todo.collect()[0])
@@ -276,17 +397,37 @@ def constraint(when, then, conditions=None, df=None):
 
 
 def _rule_todo(conditions):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param conditions:
+    :return: Pyspark columns representing what to compute.
+    """
     filtering_conditions = _and_conditions_as_columns(conditions)
     todo = sum(when(filtering_conditions, 1.0).otherwise(0.))
     return [todo]
 
 
 def rule(conditions, df=None):
+    """
+    If a df is passed, the rule metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param conditions: Conditions on which to run the metric.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    run later.
+    """
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "rule", "conditions": conditions}
+
     if df is None:
         # if no df specified create a task that contains this parameters
-        params = {"metric": "rule", "conditions": conditions}
         return task.Task([params])
     else:
+        Config._rule_params_check(params, "Erroneous parameters")
         check.rule_run_check(conditions, df)
         todo = _rule_todo(conditions)
         todo.append(count('*'))  # count all rows
@@ -339,6 +480,15 @@ def _having_constraints_as_column(having):
 
 
 def _grouprule_todo(columns, conditions, having, df):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param columns:
+    :param conditions:
+    :param having:
+    :param df:
+    :return: Pyspark columns representing what to compute.
+    """
     todo = df
 
     # filter if needed
@@ -356,21 +506,38 @@ def _grouprule_todo(columns, conditions, having, df):
     # aggregate the tuples (each tuple representing a group
     # to 1) count them 2) count the ones passing the having conditions
     having_constraints = _having_constraints_as_column(having)
-    todo = todo.agg(sum(when(having_constraints, 1).otherwise(0)).alias("_having_filtered"), count("*").alias("_having_all"))
+    todo = todo.agg(sum(when(having_constraints, 1).otherwise(0)).alias("_having_filtered"),
+                    count("*").alias("_having_all"))
 
     # normalize (divide passing groups by total groups)
     todo = todo.select(col("_having_filtered") / col("_having_all"))
     return todo
 
 
-def grouprule(columns, conditions, having=None, df=None):
+def grouprule(columns, having, conditions=None, df=None):
+    """
+    If a df is passed, the rule metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param columns: Columns on which to run the metric, grouping data.
+    :param conditions: Conditions on which to run the metric, filtering data before grouping, can be None.
+    :param having: Conditions to apply to groups.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "groupRule", "columns": columns, "conditions": conditions}
+    if having:
+        params["having"] = having
+
     if df is None:
         # if no df specified create a task that contains this parameters
-        params = {"metric": "groupRule", "columns": columns, "conditions": conditions}
-        if having:
-            params["having"] = having
         return task.Task([params])
     else:
+        Config._grouprule_params_check(params, "Erroneous params")
         check.grouprule_run_check(columns, conditions, having, df)
         todo = _grouprule_todo(columns, conditions, having, df)
 
