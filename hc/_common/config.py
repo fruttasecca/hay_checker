@@ -10,7 +10,12 @@ import copy  # to deepcopy returned items from __get_item__
 
 
 class Config(object):
+    # possible operators for conditions
     _allowed_operators = ["eq", "gt", "lt"]
+    # possible aggregators for having conditions
+    _allowed_aggregators = ["min", "avg", "max", "count", "sqrt", "sum"]
+    # possible time/date format digits
+    _possible_digits = ["D", "d", "M", "m", "Y", "y", "H", "h", "M", "m", "S", "s"]
 
     def __init__(self, config_path):
         # import dict and process/check for correctness
@@ -67,7 +72,7 @@ class Config(object):
         :param metric: Completeness metric in a dict form.
         :param error_msg: Error message to return in case of error.
         """
-        assert "completeness" in metric, error_msg
+        assert metric["metric"] == "completeness", error_msg
         assert len(metric) == 1 or (len(metric) == 2 and "columns" in metric), error_msg
         if len(metric) == 2:
             columns = metric["columns"]
@@ -86,7 +91,7 @@ class Config(object):
         :param error_msg: Error message to return in case of error.
         """
 
-        assert "freshness" in metric, error_msg
+        assert metric["metric"] == "freshness", error_msg
         assert len(metric) == 3 and "columns" in metric and (
                 "dateFormat" in metric or "timeFormat" in metric), error_msg
 
@@ -112,7 +117,7 @@ class Config(object):
         :param error_msg: Error message to return in case of error.
         """
 
-        assert "timeliness" in metric, error_msg
+        assert metric["metric"] == "timeliness", error_msg
         assert len(metric) == 4 and "columns" in metric and (
                 "dateFormat" in metric or "timeFormat" in metric) and "value" in metric, error_msg
 
@@ -130,6 +135,18 @@ class Config(object):
         for col in columns:
             assert type(col) is int or type(col) is str, error_msg
 
+        value = metric["value"]
+        assert len(value) == len(format), "Value %s and format %s have different length" % (value, format)
+        for i, (vchar, fchar) in enumerate(zip(value, format)):
+            if fchar in Config._possible_digits:
+                # then vchar must be a digit
+                assert vchar.isdigit(), "Character at position %s in %s is not a digit but it should be, given the format %s" % (
+                    i, value, format)
+            else:
+                # else it's a separator like ':' for HH:MM:ss
+                assert vchar == fchar, "Character at position %s in %s should be the same at position %s in %s" % (
+                    i, value, i, format)
+
     @staticmethod
     def _deduplication_params_check(metric, error_msg):
         """
@@ -139,7 +156,7 @@ class Config(object):
         :param metric: Deduplication metric in a dict form.
         :param error_msg: Error message to return in case of error.
         """
-        assert "deduplication" in metric, error_msg
+        assert metric["metric"] == "deduplication", error_msg
         assert len(metric) == 1 or (len(metric) == 2 and "columns" in metric), error_msg
         if len(metric) == 2:
             columns = metric["columns"]
@@ -157,7 +174,7 @@ class Config(object):
         :param metric: Constraint metric in a dict form.
         :param error_msg: Error message to return in case of error.
         """
-        assert "constraint" in metric, error_msg
+        assert metric["metric"] == "constraint", error_msg
         assert "when" in metric and "then" in metric, error_msg
         assert len(metric) == 3 or (len(metric) == 4 and "conditions" in metric), error_msg
 
@@ -187,6 +204,9 @@ class Config(object):
                         type(cond["operator"]) is str and cond["operator"] in Config._allowed_operators), error_msg
                 assert "value" in cond and (
                         type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"] is float))
+            if cond["operator"] == "gt" or cond["operator"] == "lt":
+                assert type(cond["value"]) is int or type(cond["value"]) is float, "Non numerical value for numerical " \
+                                                                                   "operator. "
 
     @staticmethod
     def _rule_params_check(metric, error_msg):
@@ -197,7 +217,7 @@ class Config(object):
         :param metric: rule metric in a dict form.
         :param error_msg: Error message to return in case of error.
         """
-        assert "rule" in metric, error_msg
+        assert metric["metric"] == "rule", error_msg
         assert len(metric) == 2 and "conditions" in metric, error_msg
 
         conditions = metric["conditions"]
@@ -209,7 +229,10 @@ class Config(object):
             assert "operator" in cond and (
                     type(cond["operator"]) is str and cond["operator"] in Config._allowed_operators), error_msg
             assert "value" in cond and (
-                        type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
+                    type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
+            if cond["operator"] == "gt" or cond["operator"] == "lt":
+                assert type(cond["value"]) is int or type(cond["value"]) is float, "Non numerical value for numerical " \
+                                                                                   "operator. "
 
     @staticmethod
     def _grouprule_params_check(metric, error_msg):
@@ -221,7 +244,7 @@ class Config(object):
         :param error_msg: Error message to return in case of error.
         """
 
-        assert "rule" in metric, error_msg
+        assert metric["metric"] == "groupRule", error_msg
         assert "columns" in metric and "having" in metric, error_msg
         assert len(metric) == 3 or (len(metric) == 4 and "conditions" in metric), error_msg
 
@@ -241,7 +264,10 @@ class Config(object):
             assert "operator" in have and (
                     type(have["operator"]) is str and have["operator"] in Config._allowed_operators), error_msg
             assert "value" in have and (
-                        type(have["value"]) is str or type(have["value"]) is int or type(have["value"]) is float)
+                    type(have["value"]) is str or type(have["value"]) is int or type(have["value"]) is float)
+            if "operator" == "gt" or "operator" == "lt":
+                assert type(have["value"]) is int or type(have["value"]) is float, "Non numerical value for numerical " \
+                                                                                   "operator. "
 
         # check conditions
         if "conditions" in metric:
@@ -254,7 +280,10 @@ class Config(object):
                 assert "operator" in cond and (
                         type(cond["operator"]) is str and cond["operator"] in Config._allowed_operators), error_msg
                 assert "value" in cond and (
-                            type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
+                        type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
+                if "operator" == "gt" or "operator" == "lt":
+                    assert type(cond["value"]) is int or type(cond["value"]) is float, "Non numerical value for numerical " \
+                                                                                       "operator. "
 
     def _process_args(self):
         """
@@ -317,3 +346,5 @@ class Config(object):
         :return: Item (copy) mapped to Key, an exception is returned if not present.
         """
         return self._config[copy.deepcopy(item)]
+
+
