@@ -5,7 +5,7 @@ on different dataframes.
 """
 import copy
 
-from hc._common.config_reader import Config
+from hc._common.config import Config
 
 
 class _Task(object):
