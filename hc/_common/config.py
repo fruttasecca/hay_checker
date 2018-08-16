@@ -15,13 +15,21 @@ class Config(object):
     # possible aggregators for having conditions
     _allowed_aggregators = ["min", "avg", "max", "count", "sqrt", "sum"]
     # possible time/date format digits
-    _possible_digits = ["D", "d", "M", "m", "Y", "y", "H", "h", "M", "m", "S", "s"]
+    _allowed_digits = ["D", "d", "M", "m", "Y", "y", "H", "h", "M", "m", "S", "s"]
 
-    def __init__(self, config_path):
+    def __init__(self, config):
         # import dict and process/check for correctness
-        self._config = json.load(open(config_path, "r"))
+        if type(config) is str:
+            self._config = json.load(open(config, "r"))
+        elif type(config) is dict:
+            self._config = copy.deepcopy(config)
+        else:
+            print("Config should either be a path to the config file or a dictionary having the structure of the json "
+                  "config file")
+            exit()
+
         assert type(self._config) is dict, "Config file should contain a dictionary."
-        self._process_args(self._config)
+        self._process_args()
         self._process_metrics(self._config["metrics"])
 
         if self._config["verbose"]:
@@ -136,9 +144,13 @@ class Config(object):
             assert type(col) is int or type(col) is str, error_msg
 
         value = metric["value"]
+        format = metric["timeFormat"] if "timeFormat" in metric else metric["dateFormat"]
+        assert len(value) > 0, "Value must have length greater than 0"
+        assert len(format) > 0, "Format must have length greater than 0"
         assert len(value) == len(format), "Value %s and format %s have different length" % (value, format)
+        assert any([c in Config._allowed_digits for c in format]), "Format contains no digits"
         for i, (vchar, fchar) in enumerate(zip(value, format)):
-            if fchar in Config._possible_digits:
+            if fchar in Config._allowed_digits:
                 # then vchar must be a digit
                 assert vchar.isdigit(), "Character at position %s in %s is not a digit but it should be, given the format %s" % (
                     i, value, format)
@@ -192,6 +204,10 @@ class Config(object):
         for t in then:
             assert type(t) is int or type(t) is str, error_msg
 
+        whenthen = metric["when"] + metric["then"]
+        for c in whenthen:
+            assert not (c in when and c in then), "Column %s is in both when and then" % c
+
         # check on conditions if there are
         if "conditions" in metric:
             conditions = metric["conditions"]
@@ -203,9 +219,9 @@ class Config(object):
                 assert "operator" in cond and (
                         type(cond["operator"]) is str and cond["operator"] in Config._allowed_operators), error_msg
                 assert "value" in cond and (
-                        type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"] is float))
-            if cond["operator"] == "gt" or cond["operator"] == "lt":
-                assert type(cond["value"]) is int or type(cond["value"]) is float, "Non numerical value for numerical " \
+                        type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
+                if cond["operator"] == "gt" or cond["operator"] == "lt":
+                    assert type(cond["value"]) is int or type(cond["value"]) is float, "Non numerical value for numerical " \
                                                                                    "operator. "
 
     @staticmethod
@@ -259,15 +275,17 @@ class Config(object):
         assert type(having) is list, error_msg
         assert len(having) > 0, error_msg
         for have in having:
-            assert type(have) is dict and len(have) == 3, error_msg
+            assert type(have) is dict and len(have) == 3 or (len(have) == 4 and "aggregator" in have), error_msg
             assert "column" in have and (type(have["column"]) is str or type(have["column"]) is int)
             assert "operator" in have and (
                     type(have["operator"]) is str and have["operator"] in Config._allowed_operators), error_msg
             assert "value" in have and (
                     type(have["value"]) is str or type(have["value"]) is int or type(have["value"]) is float)
-            if "operator" == "gt" or "operator" == "lt":
+            if have["operator"] == "gt" or have["operator"] == "lt":
                 assert type(have["value"]) is int or type(have["value"]) is float, "Non numerical value for numerical " \
                                                                                    "operator. "
+            if "aggregator" in have:
+                assert have["aggregator"] in Config._allowed_aggregators
 
         # check conditions
         if "conditions" in metric:
@@ -281,7 +299,7 @@ class Config(object):
                         type(cond["operator"]) is str and cond["operator"] in Config._allowed_operators), error_msg
                 assert "value" in cond and (
                         type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
-                if "operator" == "gt" or "operator" == "lt":
+                if have["operator"] == "gt" or have["operator"] == "lt":
                     assert type(cond["value"]) is int or type(cond["value"]) is float, "Non numerical value for numerical " \
                                                                                        "operator. "
 
@@ -330,7 +348,7 @@ class Config(object):
         if "threads" in self._config:
             assert type(self._config["threads"]) is int
         else:
-            self._config["threads"] = "1"
+            self._config["threads"] = 1
 
         if "verbose" in self._config:
             assert type(self._config["verbose"]) is bool
@@ -345,6 +363,6 @@ class Config(object):
         :param item: Key to retrieve item (i.e. the table path)
         :return: Item (copy) mapped to Key, an exception is returned if not present.
         """
-        return self._config[copy.deepcopy(item)]
+        return copy.deepcopy(self._config[item])
 
 
