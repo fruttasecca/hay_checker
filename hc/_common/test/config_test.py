@@ -695,6 +695,44 @@ class TestConfig(unittest.TestCase):
         # should run
         Config(j14)
 
+    def test_deduplication_aproximated_check(self):
+        j9 = {
+            "table": "tablePath",
+            "inferSchema": True,
+            "delimiter": "#",
+            "header": False,
+            "threads": 4,
+            "output": "/home/jacopo/output.json",
+            "verbose": False,
+            "metrics": [
+                {
+                    "metric": "deduplication_approximated",
+                    "columns": []
+                },
+            ]
+        }
+
+        with self.assertRaises(AssertionError) as cm:
+            Config(j9)
+
+        j9["metrics"][0]["metric"] = 10
+        del j9["metrics"][0]["columns"]
+        with self.assertRaises(AssertionError) as cm:
+            Config(j9)
+
+        j9["metrics"][0]["metric"] = "deduplication_approximated"
+        j9["metrics"][0]["useless param"] = 1010
+        with self.assertRaises(AssertionError) as cm:
+            Config(j9)
+
+        j9["metrics"][0]["columns"] = ["c0"]
+        # note that at this point "useless param" is still in there
+        with self.assertRaises(AssertionError) as cm:
+            Config(j9)
+
+        del j9["metrics"][0]["useless param"]
+        # should run
+        Config(j9)
 
 
 
