@@ -48,7 +48,7 @@ class Config(object):
         :param metrics: List of metrics in dict form.
         """
         allowed_metrics = ["completeness", "freshness", "timeliness", "deduplication", "constraint", "rule",
-                           "groupRule", "deduplication_approximated"]
+                           "groupRule", "deduplication_approximated", "entropy"]
         for i, metric in enumerate(metrics):
             # check that it has a metric name and that the name is allowed
             assert type(metric) is dict and "metric" in metric, "Metric %i has no 'metric' field" % i
@@ -72,6 +72,8 @@ class Config(object):
                 Config._grouprule_params_check(metric, error_msg)
             elif name == "deduplication_approximated":
                 Config._deduplication_params_check(metric, error_msg)
+            elif name == "entropy":
+                Config._entropy_params_check(metric, error_msg)
 
     @staticmethod
     def _completeness_params_check(metric, error_msg):
@@ -306,6 +308,23 @@ class Config(object):
                     assert type(cond["value"]) is int or type(
                         cond["value"]) is float, "Non numerical value for numerical " \
                                                  "operator. "
+
+    @staticmethod
+    def _entropy_params_check(metric, error_msg):
+        """
+        Check the definition of a entropy metric for consistency, this will
+        rise an assertion error if any error is met.
+
+        :param metric: Entropy metric in a dict form.
+        :param error_msg: Error message to return in case of error.
+        """
+        assert metric["metric"] == "entropy", error_msg
+        assert len(metric) == 2 and "columns" in metric, error_msg
+        columns = metric["columns"]
+        assert len(columns) > 0, "Columns list is empty"
+        assert type(columns) is list, error_msg
+        for col in columns:
+            assert type(col) is int or type(col) is str, error_msg
 
     def _process_args(self):
         """
