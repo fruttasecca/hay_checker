@@ -774,3 +774,60 @@ class TestConfig(unittest.TestCase):
         j16["metrics"][0]["column"] = "c1"
         # should run
         Config(j16)
+
+    def test_mutual_info_check(self):
+        j17 = {
+            "table": "tablePath",
+            "inferSchema": True,
+            "delimiter": "#",
+            "header": False,
+            "threads": 4,
+            "output": "/home/jacopo/output.json",
+            "verbose": False,
+            "metrics": [
+                {
+                    "metric": "mutual",
+                    "when": "c1",
+                    "then": 2
+                },
+            ]
+        }
+
+        with self.assertRaises(AssertionError) as cm:
+            Config(j17)
+
+        j17["metrics"][0]["metric"] = "mutual_info"
+        j17["metrics"][0]["when"] = ["c1"]
+        with self.assertRaises(AssertionError) as cm:
+            Config(j17)
+
+        j17["metrics"][0]["when"] = 1
+        j17["metrics"][0]["then"] = [0]
+        with self.assertRaises(AssertionError) as cm:
+            Config(j17)
+
+        j17["metrics"][0]["then"] = 0
+        j17["metrics"][0]["useless param"] = 1010
+        with self.assertRaises(AssertionError) as cm:
+            Config(j17)
+
+        j17["metrics"][0]["then"] = 1
+        del j17["metrics"][0]["useless param"]
+        with self.assertRaises(AssertionError) as cm:
+            Config(j17)
+
+        del j17["metrics"][0]["then"]
+        with self.assertRaises(AssertionError) as cm:
+            Config(j17)
+
+        del j17["metrics"][0]["when"]
+        j17["metrics"][0]["then"] = 1
+        with self.assertRaises(AssertionError) as cm:
+            Config(j17)
+
+        j17["metrics"][0]["then"] = 1
+        with self.assertRaises(AssertionError) as cm:
+            Config(j17)
+
+        j17["metrics"][0]["when"] = 2
+        Config(j17)
