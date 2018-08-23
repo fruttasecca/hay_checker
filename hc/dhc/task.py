@@ -34,6 +34,9 @@ class Task(_Task):
             elif metric["metric"] == "deduplication":
                 columns = metric.get("columns", None)
                 util.deduplication_run_check(columns, df)
+            elif metric["metric"] == "deduplication_approximated":
+                columns = metric.get("columns", None)
+                util.deduplication_approximated_run_check(columns, df)
             elif metric["metric"] == "timeliness":
                 columns = metric.get("columns")
                 value = metric.get("value")
@@ -91,6 +94,12 @@ class Task(_Task):
                 needs_count_all = True
                 columns = metric.get("columns", None)
                 todo.extend(m._deduplication_todo(columns, df))
+                simple_metrics.append(metric)
+            elif metric["metric"] == "deduplication_approximated":
+                metric["_task_id"] = i
+                needs_count_all = True
+                columns = metric.get("columns", None)
+                todo.extend(m._deduplication_approximated_todo(columns, df))
                 simple_metrics.append(metric)
             elif metric["metric"] == "timeliness":
                 metric["_task_id"] = i
@@ -177,7 +186,7 @@ class Task(_Task):
                         scores.append((collected[index] / normalizer) * 100)
                         index += 1
                     metric["scores"] = scores
-            elif metric["metric"] == "deduplication":
+            elif metric["metric"] == "deduplication" or metric["metric"] == "deduplication_approximated":
                 """
                 Using ["placeholder"] because no columns means counting distinct over the tuples of the table, so 
                 there is one column to collect, and not zero.

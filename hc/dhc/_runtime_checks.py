@@ -30,6 +30,18 @@ def deduplication_run_check(columns, df):
             assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
 
 
+def deduplication_approximated_run_check(columns, df):
+    """
+    Check for consistency between parameters and the dataframe, an assertion
+    error will incur if the check is not passed.
+    :param columns: Columns on which to run the metric
+    :param df: Dataframe on which to run the metric
+    """
+    if columns is not None:
+        for col in columns:
+            assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
+
+
 def timeliness_run_check(columns, value, df, dateFormat=None, timeFormat=None):
     """
     Check for consistency between parameters and the dataframe, an assertion
@@ -113,5 +125,3 @@ def grouprule_run_check(columns, conditions, having, df):
     if conditions is not None:
         for cond in conditions:
             assert cond["column"] in df.columns, "Column '%s' is not a column part of the dataframe" % cond["column"]
-
-

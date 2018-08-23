@@ -5,7 +5,7 @@ from pyspark.sql import SparkSession
 import pandas as pd
 
 from .._runtime_checks import completeness_run_check, deduplication_run_check, timeliness_run_check, \
-    freshness_run_check, rule_run_check, grouprule_run_check, constraint_run_check
+    freshness_run_check, rule_run_check, grouprule_run_check, constraint_run_check, deduplication_approximated_run_check
 
 
 class TestChecks(unittest.TestCase):
@@ -40,6 +40,19 @@ class TestChecks(unittest.TestCase):
         # this should work
         deduplication_run_check(["c1"], df)
         deduplication_run_check(None, df)
+
+    def test_deduplication_approximated_check(self):
+        data = pd.DataFrame()
+        data["c1"] = [10, 20, 30]
+        data["c2"] = [1000, 20, 30]
+        df = self.spark.createDataFrame(data)
+
+        with self.assertRaises(AssertionError) as cm:
+            deduplication_approximated_run_check(["c1", "c0"], df)
+
+        # this should work
+        deduplication_approximated_run_check(["c1"], df)
+        deduplication_approximated_run_check(None, df)
 
     def timeliness_run_check(self):
         data = pd.DataFrame()

@@ -9,7 +9,7 @@ from datetime import datetime
 
 import pyspark
 from pyspark.sql.functions import isnan, when, count, col, sum, countDistinct, avg, to_date, lit, \
-    abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date
+    abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date, approx_count_distinct
 
 from . import task
 from . import _runtime_checks as check
@@ -120,6 +120,63 @@ def deduplication(columns=None, df=None):
         check.deduplication_run_check(columns, df)
 
         todo = _deduplication_todo(columns, df)
+        todo.append([count('*')])  # count all rows
+
+        # using [0] at the end because a single row is being returned
+        collected = list(df.agg(*todo).collect()[0])
+        # divide everything by the number of rows in the dataset
+        for i in range(len(collected) - 1):
+            collected[i] /= collected[-1]
+            collected[i] *= 100
+        return collected[:-1]
+
+
+def _deduplication_approximated_todo(columns, df):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param columns:
+    :param df:
+    :return: Pyspark columns representing what to compute.
+    """
+    if columns is None:
+        columns = df.columns
+    if columns is None:
+        # 1 count distinct, on all columns
+        todo = [approx_count_distinct(*[col(c) for c in df.columns])]
+    else:
+        # multiple count distinct, one column each
+        todo = [approx_count_distinct(col(c)).alias(c) for c in columns]
+    return todo
+
+
+def deduplication_approximated(columns=None, df=None):
+    """
+    If a df is passed, the deduplication_approximated metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param columns: Columns on which to run the metric, None to run the deduplication_approximated
+    metric on the whole table.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "deduplication_approximated"}
+    if not (columns is None):
+        params["columns"] = columns
+
+    if df is None:
+        # if no df specified create a task that contains this parameters
+        return task.Task([params])
+    else:
+        # if df is specified run now
+        Config._deduplication_params_check(params, "Erroneous parameters")
+        check.deduplication_run_check(columns, df)
+
+        todo = _deduplication_approximated_todo(columns, df)
         todo.append([count('*')])  # count all rows
 
         # using [0] at the end because a single row is being returned
