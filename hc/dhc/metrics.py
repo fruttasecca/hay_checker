@@ -9,7 +9,7 @@ from datetime import datetime
 
 import pyspark
 from pyspark.sql.functions import isnan, when, count, col, sum, countDistinct, avg, to_date, lit, \
-    abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date, approx_count_distinct
+    abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date, approx_count_distinct, log2
 
 from . import task
 from . import _runtime_checks as check
@@ -600,3 +600,52 @@ def grouprule(columns, having, conditions=None, df=None):
 
         collected = list(todo.collect()[0])
         return [collected[0] * 100]
+
+
+def _entropy_todo(column, df):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param column:
+    :param df:
+    :return: Pyspark columns representing what to compute.
+    """
+    # group on that column
+    todo = df.groupBy(column)
+
+    # count instances of each group
+    todo = todo.agg(count("*").alias("_entropy_ci"))
+    todo = todo.select(sum(col("_entropy_ci") * log2("_entropy_ci")).alias("_sumcilogci"),
+                       sum("_entropy_ci").alias("_total"))
+    todo = todo.select(log2(col("_total")) - col("_sumcilogci") / col("_total"))
+    return todo
+
+
+def entropy(column, df=None):
+    """
+    If a df is passed, the entropy metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param column: Column on which to run the metric.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "entropy", "column": column}
+
+    if df is None:
+        # if no df specified create a task that contains this parameters
+        return task.Task([params])
+    else:
+        # if df is specified run now
+        Config._entropy_params_check(params, "Erroneous parameters")
+        check.entropy_run_check(column, df)
+
+        todo = _entropy_todo(column, df)
+
+        # using [0] at the end because a single row is being returned
+        collected = list(df.agg(*todo).collect()[0])
+        return [collected[0]]

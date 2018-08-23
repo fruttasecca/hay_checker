@@ -125,3 +125,13 @@ def grouprule_run_check(columns, conditions, having, df):
     if conditions is not None:
         for cond in conditions:
             assert cond["column"] in df.columns, "Column '%s' is not a column part of the dataframe" % cond["column"]
+
+
+def entropy_run_check(column, df):
+    """
+    Check for consistency between parameters and the dataframe, an assertion
+    error will incur if the check is not passed.
+    :param column: Column on which to run the metric
+    :param df: Dataframe on which to run the metric
+    """
+    assert column in df.columns, "Column '%s' is not a column part of the dataframe" % column

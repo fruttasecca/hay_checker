@@ -61,6 +61,9 @@ class Task(_Task):
                 conditions = metric.get("conditions", None)
                 having = metric["having"]
                 util.grouprule_run_check(columns, conditions, having, df)
+            elif metric["metric"] == "entropy":
+                column = metric.get("column", None)
+                util.entropy_run_check(column, df)
             else:
                 print("Metric %s not recognized" % metric["metric"])
                 exit()
@@ -81,6 +84,7 @@ class Task(_Task):
         # these will be run one at a time
         grouprules = []
         constraints = []
+        entropies = []
 
         for i, metric in enumerate(metrics):
             if metric["metric"] == "completeness":
@@ -129,6 +133,9 @@ class Task(_Task):
             elif metric["metric"] == "groupRule":
                 metric["_task_id"] = i
                 grouprules.append(metric)
+            elif metric["metric"] == "entropy":
+                metric["_task_id"] = i
+                entropies.append(metric)
 
         if needs_count_all:
             todo.append(count("*"))
@@ -155,8 +162,14 @@ class Task(_Task):
             todo = m._grouprule_todo(columns, conditions, having, df)
             grouprule["scores"] = [list(todo.collect()[0])[0] * 100]
 
+        # run entropies, one at a time
+        for entropy in entropies:
+            column = entropy["column"]
+            todo = m._entropy_todo(column, df)
+            entropy["scores"] = [list(todo.collect()[0])[0]]
+
         # sort metrics and return them after removing the id
-        metrics = simple_metrics + constraints + grouprules
+        metrics = simple_metrics + constraints + grouprules + entropies
         metrics = sorted(metrics, key=itemgetter('_task_id'))
         for metric in metrics:
             del metric["_task_id"]
