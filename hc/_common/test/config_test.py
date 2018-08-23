@@ -655,7 +655,6 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             Config(j14)
 
-
         j14["metrics"][0]["when"] = ["c1"]
         j14["metrics"][0]["then"] = ["c2", "c4"]
         cond1 = {"s": 1, "z": 2, "x": 4}
@@ -696,7 +695,7 @@ class TestConfig(unittest.TestCase):
         Config(j14)
 
     def test_deduplication_aproximated_check(self):
-        j9 = {
+        j15 = {
             "table": "tablePath",
             "inferSchema": True,
             "delimiter": "#",
@@ -713,44 +712,65 @@ class TestConfig(unittest.TestCase):
         }
 
         with self.assertRaises(AssertionError) as cm:
-            Config(j9)
+            Config(j15)
 
-        j9["metrics"][0]["metric"] = 10
-        del j9["metrics"][0]["columns"]
+        j15["metrics"][0]["metric"] = 10
+        del j15["metrics"][0]["columns"]
         with self.assertRaises(AssertionError) as cm:
-            Config(j9)
+            Config(j15)
 
-        j9["metrics"][0]["metric"] = "deduplication_approximated"
-        j9["metrics"][0]["useless param"] = 1010
+        j15["metrics"][0]["metric"] = "deduplication_approximated"
+        j15["metrics"][0]["useless param"] = 1010
         with self.assertRaises(AssertionError) as cm:
-            Config(j9)
+            Config(j15)
 
-        j9["metrics"][0]["columns"] = ["c0"]
+        j15["metrics"][0]["columns"] = ["c0"]
         # note that at this point "useless param" is still in there
         with self.assertRaises(AssertionError) as cm:
-            Config(j9)
+            Config(j15)
 
-        del j9["metrics"][0]["useless param"]
+        del j15["metrics"][0]["useless param"]
         # should run
-        Config(j9)
+        Config(j15)
 
+    def test_entropy_check(self):
+        j16 = {
+            "table": "tablePath",
+            "inferSchema": True,
+            "delimiter": "#",
+            "header": False,
+            "threads": 4,
+            "output": "/home/jacopo/output.json",
+            "verbose": False,
+            "metrics": [
+                {
+                    "metric": "entropy",
+                    "columns": []
+                },
+            ]
+        }
 
+        with self.assertRaises(AssertionError) as cm:
+            Config(j16)
 
+        j16["metrics"][0]["metric"] = 10
+        j16["metrics"][0]["columns"] = ["c1"]
+        with self.assertRaises(AssertionError) as cm:
+            Config(j16)
 
+        j16["metrics"][0]["metric"] = "entropy"
+        j16["metrics"][0]["useless param"] = 1010
+        with self.assertRaises(AssertionError) as cm:
+            Config(j16)
 
+        del j16["metrics"][0]["columns"]
+        with self.assertRaises(AssertionError) as cm:
+            Config(j16)
 
+        del j16["metrics"][0]["useless param"]
+        with self.assertRaises(AssertionError) as cm:
+            Config(j16)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        j16["metrics"][0]["columns"] = ["c1"]
+        # should run
+        Config(j16)
