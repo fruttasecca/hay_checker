@@ -319,12 +319,9 @@ class Config(object):
         :param error_msg: Error message to return in case of error.
         """
         assert metric["metric"] == "entropy", error_msg
-        assert len(metric) == 2 and "columns" in metric, error_msg
-        columns = metric["columns"]
-        assert len(columns) > 0, "Columns list is empty"
-        assert type(columns) is list, error_msg
-        for col in columns:
-            assert type(col) is int or type(col) is str, error_msg
+        assert len(metric) == 2 and "column" in metric, error_msg
+        col = metric["column"]
+        assert type(col) is int or type(col) is str, error_msg
 
     def _process_args(self):
         """
