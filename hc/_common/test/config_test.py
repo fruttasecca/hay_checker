@@ -745,7 +745,7 @@ class TestConfig(unittest.TestCase):
             "metrics": [
                 {
                     "metric": "entropy",
-                    "columns": []
+                    "column": []
                 },
             ]
         }
@@ -754,7 +754,7 @@ class TestConfig(unittest.TestCase):
             Config(j16)
 
         j16["metrics"][0]["metric"] = 10
-        j16["metrics"][0]["columns"] = ["c1"]
+        j16["metrics"][0]["column"] = "c1"
         with self.assertRaises(AssertionError) as cm:
             Config(j16)
 
@@ -763,7 +763,7 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             Config(j16)
 
-        del j16["metrics"][0]["columns"]
+        del j16["metrics"][0]["column"]
         with self.assertRaises(AssertionError) as cm:
             Config(j16)
 
@@ -771,6 +771,6 @@ class TestConfig(unittest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             Config(j16)
 
-        j16["metrics"][0]["columns"] = ["c1"]
+        j16["metrics"][0]["column"] = "c1"
         # should run
         Config(j16)
