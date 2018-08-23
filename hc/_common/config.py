@@ -48,7 +48,7 @@ class Config(object):
         :param metrics: List of metrics in dict form.
         """
         allowed_metrics = ["completeness", "freshness", "timeliness", "deduplication", "constraint", "rule",
-                           "groupRule"]
+                           "groupRule", "deduplication_approximated"]
         for i, metric in enumerate(metrics):
             # check that it has a metric name and that the name is allowed
             assert type(metric) is dict and "metric" in metric, "Metric %i has no 'metric' field" % i
@@ -70,6 +70,8 @@ class Config(object):
                 Config._rule_params_check(metric, error_msg)
             elif name == "groupRule":
                 Config._grouprule_params_check(metric, error_msg)
+            elif name == "deduplication_approximated":
+                Config._deduplication_params_check(metric, error_msg)
 
     @staticmethod
     def _completeness_params_check(metric, error_msg):
@@ -168,7 +170,7 @@ class Config(object):
         :param metric: Deduplication metric in a dict form.
         :param error_msg: Error message to return in case of error.
         """
-        assert metric["metric"] == "deduplication", error_msg
+        assert metric["metric"] == "deduplication" or metric["metric"] == "deduplication_approximated", error_msg
         assert len(metric) == 1 or (len(metric) == 2 and "columns" in metric), error_msg
         if len(metric) == 2:
             columns = metric["columns"]
@@ -221,8 +223,9 @@ class Config(object):
                 assert "value" in cond and (
                         type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
                 if cond["operator"] == "gt" or cond["operator"] == "lt":
-                    assert type(cond["value"]) is int or type(cond["value"]) is float, "Non numerical value for numerical " \
-                                                                                   "operator. "
+                    assert type(cond["value"]) is int or type(
+                        cond["value"]) is float, "Non numerical value for numerical " \
+                                                 "operator. "
 
     @staticmethod
     def _rule_params_check(metric, error_msg):
@@ -300,8 +303,9 @@ class Config(object):
                 assert "value" in cond and (
                         type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
                 if have["operator"] == "gt" or have["operator"] == "lt":
-                    assert type(cond["value"]) is int or type(cond["value"]) is float, "Non numerical value for numerical " \
-                                                                                       "operator. "
+                    assert type(cond["value"]) is int or type(
+                        cond["value"]) is float, "Non numerical value for numerical " \
+                                                 "operator. "
 
     def _process_args(self):
         """
@@ -364,5 +368,3 @@ class Config(object):
         :return: Item (copy) mapped to Key, an exception is returned if not present.
         """
         return copy.deepcopy(self._config[item])
-
-
