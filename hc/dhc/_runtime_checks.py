@@ -135,3 +135,16 @@ def entropy_run_check(column, df):
     :param df: Dataframe on which to run the metric
     """
     assert column in df.columns, "Column '%s' is not a column part of the dataframe" % column
+
+
+def mutual_info_run_check(when, then, df):
+    """
+    Check for consistency between parameters and the dataframe, an assertion
+    error will incur if the check is not passed.
+    :param when: First column on which to run the metric
+    :param then: Second column on which to run the metric
+    :param df: Dataframe on which to run the metric
+    """
+    assert when in df.columns, "Column '%s' is not a column part of the dataframe" % when
+    assert then in df.columns, "Column '%s' is not a column part of the dataframe" % then
+    assert when != then, "When and then must differ"

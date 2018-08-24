@@ -649,3 +649,59 @@ def entropy(column, df=None):
         # using [0] at the end because a single row is being returned
         collected = list(df.agg(*todo).collect()[0])
         return [collected[0]]
+
+
+def _mutual_info_todo(when, then, df):
+    """
+    Returns what (columns, as in spark columns) to compute to get the results requested by
+    the parameters.
+    :param when:
+    :param then:
+    :param df:
+    :return: Pyspark columns representing what to compute.
+    """
+    # group on the pair of columns, count occurrences
+    pairs_table = df.groupBy([when, then]).agg(count("*").alias("_pairs_count"))
+    pairs_table.cache()
+
+    when_table = pairs_table.groupBy(when).agg(sum("_pairs_count").alias("_when_count"))
+    then_table = pairs_table.groupBy(then).agg(sum("_pairs_count").alias("_then_count"))
+    final_table = pairs_table.join(when_table, when).join(then_table, then)
+    # prepare 4 subformulas of MI to later sum, plus the total
+    todo = final_table.select(sum(col("_pairs_count") * log2(col("_pairs_count"))).alias("_s1"),  # c_xy * logc_xy
+                              sum(col("_pairs_count")).alias("_s2"),  # c_xy
+                              sum(col("_pairs_count") * log2(col("_when_count"))).alias("_s3"),  # c_xy * logc_x
+                              sum(col("_pairs_count") * log2(col("_then_count"))).alias("_s4"),  # c_xy * logc_y
+                              sum(col("_pairs_count")).alias("_total")  # total
+                              )
+    todo = todo.select((col("_s1") / col("_total")) + (log2(col("_total")) * (col("_s2") / col("_total"))) - (
+            (col("_s3")) / col("_total")) - ((col("_s4")) / col("_total")).alias("mutual_info"))
+    return todo
+
+
+def mutual_info(when, then, df=None):
+    """
+    If a df is passed, the mutual_info metric will be run and result returned
+    as a list of scores, otherwise an instance of the Task class containing this
+    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+    :param when: First column on which to compute MI.
+    :param then: Second column on which to compute MI.
+    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
+    this metric to be run later.
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    run later.
+    """
+    # make a dict representing the parameters
+    # either needed to make the Task instance or to check params
+    params = {"metric": "mutual_info", "when": when, "then": then}
+
+    if df is None:
+        # if no df specified create a task that contains this parameters
+        return task.Task([params])
+    else:
+        # if df is specified run now
+        Config._mutual_info_params_check(params, "Erroneous parameters")
+        check.mutual_info_run_check(when, then, df)
+
+        todo = _mutual_info_todo(when, then, df)
+        return [list(todo.collect()[0])]

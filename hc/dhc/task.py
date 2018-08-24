@@ -64,6 +64,10 @@ class Task(_Task):
             elif metric["metric"] == "entropy":
                 column = metric.get("column", None)
                 util.entropy_run_check(column, df)
+            elif metric["metric"] == "mutual_info":
+                when = metric.get("when", None)
+                then = metric.get("then", None)
+                util.mutual_info_run_check(when, then, df)
             else:
                 print("Metric %s not recognized" % metric["metric"])
                 exit()
@@ -85,6 +89,7 @@ class Task(_Task):
         grouprules = []
         constraints = []
         entropies = []
+        mutual_infos = []
 
         for i, metric in enumerate(metrics):
             if metric["metric"] == "completeness":
@@ -136,6 +141,9 @@ class Task(_Task):
             elif metric["metric"] == "entropy":
                 metric["_task_id"] = i
                 entropies.append(metric)
+            elif metric["metric"] == "mutual_info":
+                metric["_task_id"] = i
+                mutual_infos.append(metric)
 
         if needs_count_all:
             todo.append(count("*"))
@@ -168,8 +176,15 @@ class Task(_Task):
             todo = m._entropy_todo(column, df)
             entropy["scores"] = [list(todo.collect()[0])[0]]
 
+        # run mutual infos, one at a time
+        for info in mutual_infos:
+            when = info["when"]
+            then = info["then"]
+            todo = m._mutual_info_todo(when, then, df)
+            info["scores"] = [list(todo.collect()[0])[0]]
+
         # sort metrics and return them after removing the id
-        metrics = simple_metrics + constraints + grouprules + entropies
+        metrics = simple_metrics + constraints + grouprules + entropies + mutual_infos
         metrics = sorted(metrics, key=itemgetter('_task_id'))
         for metric in metrics:
             del metric["_task_id"]
