@@ -12,9 +12,6 @@ from pyspark.sql.functions import isnan, when, count, col, sum, countDistinct, a
     abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date, approx_count_distinct, log2
 
 from . import task
-from . import _runtime_checks as check
-from .._common._util import seconds_to_time_format
-from .._common.config import Config
 
 
 def _completeness_todo(columns, df):
@@ -45,34 +42,14 @@ def completeness(columns=None, df=None):
     """
 
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
     params = {"metric": "completeness"}
     if not (columns is None):
         params["columns"] = columns
-
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        # if df is specified run now
-        columns = check._columns_index_to_name(columns, df)
-        Config._completeness_params_check(params, "Erroneous parameters")
-        check.completeness_run_check(columns, df)
-
-        todo = _completeness_todo(columns, df)
-        todo.append(count("*"))  # get number of rows, used to normalize
-        collected = list(df.agg(*todo).collect()[0])
-        if columns is None:
-            total_cells = len(df.columns * collected[-1])
-            result = 0
-            # divide one result at a time to avoid overflow
-            for i in range(len(collected) - 1):
-                result += (collected[i] / total_cells)
-            return result * 100
-        else:
-            for i in range(len(collected) - 1):
-                collected[i] = (collected[i] / collected[-1]) * 100
-            return collected[:-1]
+        return t.run(df)[0]["scores"]
 
 
 def _deduplication_todo(columns, df):
@@ -105,30 +82,14 @@ def deduplication(columns=None, df=None):
     run later.
     """
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
     params = {"metric": "deduplication"}
     if not (columns is None):
         params["columns"] = columns
-
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        # if df is specified run now
-        columns = check._columns_index_to_name(columns, df)
-        Config._deduplication_params_check(params, "Erroneous parameters")
-        check.deduplication_run_check(columns, df)
-
-        todo = _deduplication_todo(columns, df)
-        todo.append([count('*')])  # count all rows
-
-        # using [0] at the end because a single row is being returned
-        collected = list(df.agg(*todo).collect()[0])
-        # divide everything by the number of rows in the dataset
-        for i in range(len(collected) - 1):
-            collected[i] /= collected[-1]
-            collected[i] *= 100
-        return collected[:-1]
+        return t.run(df)[0]["scores"]
 
 
 def _deduplication_approximated_todo(columns, df):
@@ -161,30 +122,14 @@ def deduplication_approximated(columns=None, df=None):
     run later.
     """
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
     params = {"metric": "deduplication_approximated"}
     if not (columns is None):
         params["columns"] = columns
-
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        # if df is specified run now
-        columns = check._columns_index_to_name(columns, df)
-        Config._deduplication_params_check(params, "Erroneous parameters")
-        check.deduplication_run_check(columns, df)
-
-        todo = _deduplication_approximated_todo(columns, df)
-        todo.append([count('*')])  # count all rows
-
-        # using [0] at the end because a single row is being returned
-        collected = list(df.agg(*todo).collect()[0])
-        # divide everything by the number of rows in the dataset
-        for i in range(len(collected) - 1):
-            collected[i] /= collected[-1]
-            collected[i] *= 100
-        return collected[:-1]
+        return t.run(df)[0]["scores"]
 
 
 def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
@@ -252,31 +197,16 @@ def timeliness(columns, value, df=None, dateFormat=None, timeFormat=None):
     assert (dateFormat is None or timeFormat is None) and (
             not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, not both."
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
     params = {"metric": "timeliness", "columns": columns, "value": value}
     if dateFormat:
         params["dateFormat"] = dateFormat
     elif timeFormat:
         params["timeFormat"] = timeFormat
-
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        # if df is specified run now
-        columns = check._columns_index_to_name(columns, df)
-        Config._timeliness_params_check(params, "Erroneous parameters")
-        check.timeliness_run_check(columns, value, df, dateFormat, timeFormat)
-
-        todo = _timeliness_todo(columns, value, df, dateFormat, timeFormat)
-        todo.append(count('*'))  # count rows
-
-        collected = list(df.agg(*todo).collect()[0])
-        # divide everything by the number of rows in the dataset
-        for i in range(len(collected) - 1):
-            collected[i] /= collected[-1]
-            collected[i] *= 100
-        return collected[:-1]
+        return t.run(df)[0]["scores"]
 
 
 def _freshness_todo(columns, df, dateFormat=None, timeFormat=None):
@@ -340,49 +270,54 @@ def freshness(columns, df=None, dateFormat=None, timeFormat=None):
     run later.
     """
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
     params = {"metric": "freshness", "columns": columns}
     if dateFormat:
         params["dateFormat"] = dateFormat
     elif timeFormat:
         params["timeFormat"] = timeFormat
-
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        # if df is specified run now
-        columns = check._columns_index_to_name(columns, df)
-        Config._freshness_params_check(params, "Erroneous parameters")
-        check.freshness_run_check(columns, df, dateFormat, timeFormat)
-        todo = _freshness_todo(columns, df, dateFormat, timeFormat)
-        result = list(df.agg(*todo).collect()[0])
-        if dateFormat:
-            result = [int(res) for res in result]
-        else:
-            result = [seconds_to_time_format(res) for res in result]
-
-        return result
+        return t.run(df)[0]["scores"]
 
 
 def _and_conditions_as_columns(conditions):
     # add first condition
     cond = conditions[0]
-    if cond["operator"] == "gt":
-        result = col(cond["column"]) > cond["value"]
-    elif cond["operator"] == "lt":
-        result = col(cond["column"]) < cond["value"]
-    elif cond["operator"] == "eq":
-        result = col(cond["column"]) == cond["value"]
+    if "casted_to" in cond:
+        casted_to = cond["casted_to"]
+        if cond["operator"] == "gt":
+            result = col(cond["column"]).cast(casted_to) > cond["value"]
+        elif cond["operator"] == "lt":
+            result = col(cond["column"]).cast(casted_to) < cond["value"]
+        elif cond["operator"] == "eq":
+            result = col(cond["column"]).cast(casted_to) == cond["value"]
+    else:
+        if cond["operator"] == "gt":
+            result = col(cond["column"]) > cond["value"]
+        elif cond["operator"] == "lt":
+            result = col(cond["column"]) < cond["value"]
+        elif cond["operator"] == "eq":
+            result = col(cond["column"]) == cond["value"]
 
     # add the rest
     for cond in conditions[1:]:
-        if cond["operator"] == "gt":
-            result = result & (col(cond["column"]) > cond["value"])
-        elif cond["operator"] == "lt":
-            result = result & (col(cond["column"]) < cond["value"])
-        elif cond["operator"] == "eq":
-            result = result & (col(cond["column"]) == cond["value"])
+        if "casted_to" in cond:
+            casted_to = cond["casted_to"]
+            if cond["operator"] == "gt":
+                result = result & (col(cond["column"]).cast(casted_to) > cond["value"])
+            elif cond["operator"] == "lt":
+                result = result & (col(cond["column"]).cast(casted_to) < cond["value"])
+            elif cond["operator"] == "eq":
+                result = result & (col(cond["column"]).cast(casted_to) == cond["value"])
+        else:
+            if cond["operator"] == "gt":
+                result = result & (col(cond["column"]) > cond["value"])
+            elif cond["operator"] == "lt":
+                result = result & (col(cond["column"]) < cond["value"])
+            elif cond["operator"] == "eq":
+                result = result & (col(cond["column"]) == cond["value"])
     return result
 
 
@@ -437,23 +372,14 @@ def constraint(when, then, conditions=None, df=None):
     run later.
     """
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
     params = {"metric": "constraint", "when": when, "then": then}
     if conditions:
         params["conditions"] = conditions
-
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        # if df is specified run now
-        when, then = check._columns_index_to_name([when, then], df)
-        conditions = check._conditions_columns_index_to_name(conditions, df)
-        Config._constraint_params_check(params, "Erroneous parameters")
-        check.constraint_run_check(when, then, conditions, df)
-        todo = _constraint_todo(when, then, conditions, df)
-        res = list(todo.collect()[0])
-        return [res[0] * 100]
+        return t.run(df)[0]["scores"]
 
 
 def _rule_todo(conditions):
@@ -480,40 +406,50 @@ def rule(conditions, df=None):
     run later.
     """
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
     params = {"metric": "rule", "conditions": conditions}
-
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        conditions = check._conditions_columns_index_to_name(conditions, df)
-        Config._rule_params_check(params, "Erroneous parameters")
-        check.rule_run_check(conditions, df)
-        todo = _rule_todo(conditions)
-        todo.append(count('*'))  # count all rows
-        collected = list(df.agg(*todo).collect()[0])
-        return [(collected[0] / collected[1]) * 100]
+        return t.run(df)[0]["scores"]
 
 
 def _having_aggregations_as_columns(condition):
     column = condition["column"]
     aggregator = condition["aggregator"] if "aggregator" in condition else None
-    if aggregator == "count":
-        return count(column)
-    elif aggregator == "min":
-        return pyspark.sql.functions.min(column)
-    elif aggregator == "max":
-        return pyspark.sql.functions.max(column)
-    elif aggregator == "avg":
-        return pyspark.sql.functions.avg(column)
-    elif aggregator == "sum":
-        return pyspark.sql.functions.sum(column)
-    elif aggregator == "sqrt":
-        return pyspark.sql.functions.sqrt(column)
+    if "casted_to" in condition:
+        casted_to = condition["casted_to"]
+        if aggregator == "count":
+            return count(column)
+        elif aggregator == "min":
+            return pyspark.sql.functions.min(col(column).cast(casted_to))
+        elif aggregator == "max":
+            return pyspark.sql.functions.max(col(column).cast(casted_to))
+        elif aggregator == "avg":
+            return pyspark.sql.functions.avg(col(column).cast(casted_to))
+        elif aggregator == "sum":
+            return pyspark.sql.functions.sum(col(column).cast(casted_to))
+        elif aggregator == "sqrt":
+            return pyspark.sql.functions.sqrt(col(column).cast(casted_to))
+        else:
+            print("Aggregator %s not recognized" % aggregator)
+            exit()
     else:
-        print("Aggregator %s not recognized" % aggregator)
-        exit()
+        if aggregator == "count":
+            return count(column)
+        elif aggregator == "min":
+            return pyspark.sql.functions.min(column)
+        elif aggregator == "max":
+            return pyspark.sql.functions.max(column)
+        elif aggregator == "avg":
+            return pyspark.sql.functions.avg(column)
+        elif aggregator == "sum":
+            return pyspark.sql.functions.sum(column)
+        elif aggregator == "sqrt":
+            return pyspark.sql.functions.sqrt(column)
+        else:
+            print("Aggregator %s not recognized" % aggregator)
+            exit()
 
 
 def _having_constraints_as_column(having):
@@ -589,25 +525,14 @@ def grouprule(columns, having, conditions=None, df=None):
     run later.
     """
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
-    params = {"metric": "groupRule", "columns": columns, "conditions": conditions}
-    if having:
-        params["having"] = having
-
+    params = {"metric": "groupRule", "columns": columns, "having": having}
+    if conditions is not None:
+        params["conditions"] = conditions
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        columns = check._columns_index_to_name(columns, df)
-        conditions = check._conditions_columns_index_to_name(conditions, df)
-        if having:
-            having = check._conditions_columns_index_to_name(having, df)
-        Config._grouprule_params_check(params, "Erroneous params")
-        check.grouprule_run_check(columns, conditions, having, df)
-        todo = _grouprule_todo(columns, conditions, having, df)
-
-        collected = list(todo.collect()[0])
-        return [collected[0] * 100]
+        return t.run(df)[0]["scores"]
 
 
 def _entropy_todo(column, df):
@@ -641,23 +566,12 @@ def entropy(column, df=None):
     run later.
     """
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
-    column = check._columns_index_to_name([column], df)[0]
     params = {"metric": "entropy", "column": column}
-
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        # if df is specified run now
-        Config._entropy_params_check(params, "Erroneous parameters")
-        check.entropy_run_check(column, df)
-
-        todo = _entropy_todo(column, df)
-
-        # using [0] at the end because a single row is being returned
-        collected = list(df.agg(*todo).collect()[0])
-        return [collected[0]]
+        return t.run(df)[0]["scores"]
 
 
 def _mutual_info_todo(when, then, df):
@@ -701,17 +615,10 @@ def mutual_info(when, then, df=None):
     run later.
     """
     # make a dict representing the parameters
-    # either needed to make the Task instance or to check params
     params = {"metric": "mutual_info", "when": when, "then": then}
-
+    # create tak containing parameters
+    t = task.Task([params])
     if df is None:
-        # if no df specified create a task that contains this parameters
-        return task.Task([params])
+        return t
     else:
-        # if df is specified run now
-        when, then = check._columns_index_to_name([when, then], df)
-        Config._mutual_info_params_check(params, "Erroneous parameters")
-        check.mutual_info_run_check(when, then, df)
-
-        todo = _mutual_info_todo(when, then, df)
-        return [list(todo.collect()[0])]
+        return t.run(df)[0]["scores"]

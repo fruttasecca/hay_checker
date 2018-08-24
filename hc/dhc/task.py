@@ -15,15 +15,20 @@ from . import metrics as m
 
 
 class Task(_Task):
-    def __init__(self, metrics_params=[]):
+    def __init__(self, metrics_params=[], allow_casting=True):
         """
         Init the class, adding _metrics to the
         stuff to compute if any metric parameters dictionary is passed.
 
         :param metrics_params: List of _metrics, each metric is a dictionary mapping params of
         the metric to a value, as in the json config file.
+        :param allow_casting: If a column not of the type of what it is evaluated against (i.e. a condition checking
+        for column 'x' being gt 3.0, with the type of 'x' being string) should be casted to the type of the value
+        it is checked against. If casting is not allowed the previous example would provoke an error, (through an
+        assertion); default is True.
         """
         super().__init__(metrics_params)
+        self._allow_casting = allow_casting
 
     @staticmethod
     def _columns_index_to_name(columns, idxdict):
@@ -44,13 +49,15 @@ class Task(_Task):
         return res
 
     @staticmethod
-    def _conditions_column_index_to_name(conditions, idxdict):
+    def _conditions_column_index_to_name(conditions, idxdict, typesdict, allow_casting):
         """
         Column indexes will be substituted by names, while column names (strings) will
         be untouched.
 
         :param conditions:
         :param idxdict:
+        :param typesdict: Dict mapping column to a type
+        :param allow_casting: If casting a column to a type matching the 'value' field in condition is allowed
         :return:
         """
         for cond in conditions:
@@ -58,27 +65,34 @@ class Task(_Task):
             if type(col) is int:
                 assert 0 <= col < len(idxdict), "column index '%s' out of range" % col
                 cond["column"] = idxdict[col]
+            if typesdict[cond["column"]] == "string" and type(cond["value"]) != str:
+                assert allow_casting, "Type of column '%s' is string, but 'value' %s is of numeric type, and casting " \
+                                      "is not allowed" % (
+                                          col, cond["value"])
+                vtype = type(cond["value"])
+                cond["casted_to"] = "double" if vtype is float else "bigint"
 
     @staticmethod
-    def _perform_run_checks(metrics, df):
+    def _perform_run_checks(metrics, df, allow_casting):
 
         # maps an index to a column name
         idxdict = dict(enumerate(df.columns))
+        typesdict = dict(df.dtypes)
 
         for metric in metrics:
             if metric["metric"] == "completeness":
-                if columns is not None:
-                    metric["columns"] = Task._columns_index_to_name(columns, idxdict)
+                if "columns" in metric:
+                    metric["columns"] = Task._columns_index_to_name(metric["columns"], idxdict)
                 columns = metric.get("columns", None)
                 util.completeness_run_check(columns, df)
             elif metric["metric"] == "deduplication":
-                if columns is not None:
-                    metric["columns"] = Task._columns_index_to_name(columns, idxdict)
+                if "columns" in metric:
+                    metric["columns"] = Task._columns_index_to_name(metric["columns"], idxdict)
                 columns = metric.get("columns", None)
                 util.deduplication_run_check(columns, df)
             elif metric["metric"] == "deduplication_approximated":
-                if columns is not None:
-                    metric["columns"] = Task._columns_index_to_name(columns, idxdict)
+                if "columns" in metric:
+                    metric["columns"] = Task._columns_index_to_name(metric["columns"], idxdict)
                 columns = metric.get("columns", None)
                 util.deduplication_approximated_run_check(columns, df)
             elif metric["metric"] == "timeliness":
@@ -95,21 +109,21 @@ class Task(_Task):
                 timeFormat = metric.get("timeFormat", None)
                 util.freshness_run_check(columns, df, dateFormat, timeFormat)
             elif metric["metric"] == "rule":
-                Task._conditions_column_index_to_name(metric["conditions"], idxdict)
+                Task._conditions_column_index_to_name(metric["conditions"], idxdict, typesdict, allow_casting)
                 util.rule_run_check(metric["conditions"], df)
             elif metric["metric"] == "constraint":
                 when, then = Task._columns_index_to_name([metric["when"], metric["then"]], idxdict)
                 metric["when"] = when
                 metric["then"] = then
                 if "conditions" in metric:
-                    Task._conditions_column_index_to_name(conditions, idxdict)
+                    Task._conditions_column_index_to_name(metric["conditions"], idxdict, typesdict, allow_casting)
                 conditions = metric.get("conditions", None)
                 util.constraint_run_check(when, then, conditions, df)
             elif metric["metric"] == "groupRule":
                 metric["columns"] = Task._columns_index_to_name(metric["columns"], idxdict)
                 if "conditions" in metric:
-                    Task._conditions_column_index_to_name(metric["conditions"], idxdict)
-                Task._conditions_column_index_to_name(metric["having"], idxdict)
+                    Task._conditions_column_index_to_name(metric["conditions"], idxdict, typesdict, allow_casting)
+                Task._conditions_column_index_to_name(metric["having"], idxdict, typesdict, allow_casting)
                 columns = metric["columns"]
                 conditions = metric.get("conditions", None)
                 having = metric["having"]
@@ -118,8 +132,8 @@ class Task(_Task):
                 metric["column"] = Task._columns_index_to_name([metric["column"]], idxdict)[0]
                 util.entropy_run_check(metric["column"], df)
             elif metric["metric"] == "mutual_info":
-                when = metric.get("when", None)
-                then = metric.get("then", None)
+                when = metric.get("when")
+                then = metric.get("then")
                 when, then = Task._columns_index_to_name([when, then], idxdict)
                 metric["when"] = when
                 metric["then"] = then
@@ -135,7 +149,7 @@ class Task(_Task):
         """
         metrics = copy.deepcopy(self._metrics)
         # run time checks on every metric before starting, substitute column indexes with names
-        self._perform_run_checks(metrics, df)
+        self._perform_run_checks(metrics, df, self._allow_casting)
 
         # get stuff to do for metrics that can be run together in a single pass
         todo = []
