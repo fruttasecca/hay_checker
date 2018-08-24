@@ -26,47 +26,103 @@ class Task(_Task):
         super().__init__(metrics_params)
 
     @staticmethod
+    def _columns_index_to_name(columns, idxdict):
+        """
+        Returns a list of column names and indexes as a list of columns names, substituting column
+        indexes with their respective name.
+        :param columns:
+        :param idxdict:
+        :return:
+        """
+        res = []
+        for col in columns:
+            if type(col) is int:
+                assert 0 <= col < len(idxdict), "Column index '%s' out of range" % col
+                res.append(idxdict[col])
+            else:
+                res.append(col)
+        return res
+
+    @staticmethod
+    def _conditions_column_index_to_name(conditions, idxdict):
+        """
+        Column indexes will be substituted by names, while column names (strings) will
+        be untouched.
+
+        :param conditions:
+        :param idxdict:
+        :return:
+        """
+        for cond in conditions:
+            col = cond["column"]
+            if type(col) is int:
+                assert 0 <= col < len(idxdict), "column index '%s' out of range" % col
+                cond["column"] = idxdict[col]
+
+    @staticmethod
     def _perform_run_checks(metrics, df):
+
+        # maps an index to a column name
+        idxdict = dict(enumerate(df.columns))
+
         for metric in metrics:
             if metric["metric"] == "completeness":
+                if columns is not None:
+                    metric["columns"] = Task._columns_index_to_name(columns, idxdict)
                 columns = metric.get("columns", None)
                 util.completeness_run_check(columns, df)
             elif metric["metric"] == "deduplication":
+                if columns is not None:
+                    metric["columns"] = Task._columns_index_to_name(columns, idxdict)
                 columns = metric.get("columns", None)
                 util.deduplication_run_check(columns, df)
             elif metric["metric"] == "deduplication_approximated":
+                if columns is not None:
+                    metric["columns"] = Task._columns_index_to_name(columns, idxdict)
                 columns = metric.get("columns", None)
                 util.deduplication_approximated_run_check(columns, df)
             elif metric["metric"] == "timeliness":
+                metric["columns"] = Task._columns_index_to_name(metric["columns"], idxdict)
                 columns = metric.get("columns")
                 value = metric.get("value")
                 dateFormat = metric.get("dateFormat", None)
                 timeFormat = metric.get("timeFormat", None)
                 util.timeliness_run_check(columns, value, df, dateFormat, timeFormat)
             elif metric["metric"] == "freshness":
+                metric["columns"] = Task._columns_index_to_name(metric["columns"], idxdict)
                 columns = metric.get("columns")
                 dateFormat = metric.get("dateFormat", None)
                 timeFormat = metric.get("timeFormat", None)
                 util.freshness_run_check(columns, df, dateFormat, timeFormat)
             elif metric["metric"] == "rule":
-                conditions = metric["conditions"]
-                util.rule_run_check(conditions, df)
+                Task._conditions_column_index_to_name(metric["conditions"], idxdict)
+                util.rule_run_check(metric["conditions"], df)
             elif metric["metric"] == "constraint":
-                when = metric["when"]
-                then = metric["then"]
+                when, then = Task._columns_index_to_name([metric["when"], metric["then"]], idxdict)
+                metric["when"] = when
+                metric["then"] = then
+                if "conditions" in metric:
+                    Task._conditions_column_index_to_name(conditions, idxdict)
                 conditions = metric.get("conditions", None)
                 util.constraint_run_check(when, then, conditions, df)
             elif metric["metric"] == "groupRule":
+                metric["columns"] = Task._columns_index_to_name(metric["columns"], idxdict)
+                if "conditions" in metric:
+                    Task._conditions_column_index_to_name(metric["conditions"], idxdict)
+                Task._conditions_column_index_to_name(metric["having"], idxdict)
                 columns = metric["columns"]
                 conditions = metric.get("conditions", None)
                 having = metric["having"]
                 util.grouprule_run_check(columns, conditions, having, df)
             elif metric["metric"] == "entropy":
-                column = metric.get("column", None)
-                util.entropy_run_check(column, df)
+                metric["column"] = Task._columns_index_to_name([metric["column"]], idxdict)[0]
+                util.entropy_run_check(metric["column"], df)
             elif metric["metric"] == "mutual_info":
                 when = metric.get("when", None)
                 then = metric.get("then", None)
+                when, then = Task._columns_index_to_name([when, then], idxdict)
+                metric["when"] = when
+                metric["then"] = then
                 util.mutual_info_run_check(when, then, df)
             else:
                 print("Metric %s not recognized" % metric["metric"])
@@ -78,7 +134,7 @@ class Task(_Task):
          existing in the df, etc.), then perform the required computations.
         """
         metrics = copy.deepcopy(self._metrics)
-        # run time checks on every metric before starting
+        # run time checks on every metric before starting, substitute column indexes with names
         self._perform_run_checks(metrics, df)
 
         # get stuff to do for metrics that can be run together in a single pass

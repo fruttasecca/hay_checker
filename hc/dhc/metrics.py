@@ -55,6 +55,7 @@ def completeness(columns=None, df=None):
         return task.Task([params])
     else:
         # if df is specified run now
+        columns = check._columns_index_to_name(columns, df)
         Config._completeness_params_check(params, "Erroneous parameters")
         check.completeness_run_check(columns, df)
 
@@ -82,8 +83,6 @@ def _deduplication_todo(columns, df):
     :param df:
     :return: Pyspark columns representing what to compute.
     """
-    if columns is None:
-        columns = df.columns
     if columns is None:
         # 1 count distinct, on all columns
         todo = [countDistinct(*[col(c) for c in df.columns])]
@@ -116,6 +115,7 @@ def deduplication(columns=None, df=None):
         return task.Task([params])
     else:
         # if df is specified run now
+        columns = check._columns_index_to_name(columns, df)
         Config._deduplication_params_check(params, "Erroneous parameters")
         check.deduplication_run_check(columns, df)
 
@@ -139,8 +139,6 @@ def _deduplication_approximated_todo(columns, df):
     :param df:
     :return: Pyspark columns representing what to compute.
     """
-    if columns is None:
-        columns = df.columns
     if columns is None:
         # 1 count distinct, on all columns
         todo = [approx_count_distinct(*[col(c) for c in df.columns])]
@@ -173,6 +171,7 @@ def deduplication_approximated(columns=None, df=None):
         return task.Task([params])
     else:
         # if df is specified run now
+        columns = check._columns_index_to_name(columns, df)
         Config._deduplication_params_check(params, "Erroneous parameters")
         check.deduplication_run_check(columns, df)
 
@@ -265,6 +264,7 @@ def timeliness(columns, value, df=None, dateFormat=None, timeFormat=None):
         return task.Task([params])
     else:
         # if df is specified run now
+        columns = check._columns_index_to_name(columns, df)
         Config._timeliness_params_check(params, "Erroneous parameters")
         check.timeliness_run_check(columns, value, df, dateFormat, timeFormat)
 
@@ -352,6 +352,7 @@ def freshness(columns, df=None, dateFormat=None, timeFormat=None):
         return task.Task([params])
     else:
         # if df is specified run now
+        columns = check._columns_index_to_name(columns, df)
         Config._freshness_params_check(params, "Erroneous parameters")
         check.freshness_run_check(columns, df, dateFormat, timeFormat)
         todo = _freshness_todo(columns, df, dateFormat, timeFormat)
@@ -446,6 +447,8 @@ def constraint(when, then, conditions=None, df=None):
         return task.Task([params])
     else:
         # if df is specified run now
+        when, then = check._columns_index_to_name([when, then], df)
+        conditions = check._conditions_columns_index_to_name(conditions, df)
         Config._constraint_params_check(params, "Erroneous parameters")
         check.constraint_run_check(when, then, conditions, df)
         todo = _constraint_todo(when, then, conditions, df)
@@ -484,6 +487,7 @@ def rule(conditions, df=None):
         # if no df specified create a task that contains this parameters
         return task.Task([params])
     else:
+        conditions = check._conditions_columns_index_to_name(conditions, df)
         Config._rule_params_check(params, "Erroneous parameters")
         check.rule_run_check(conditions, df)
         todo = _rule_todo(conditions)
@@ -594,6 +598,10 @@ def grouprule(columns, having, conditions=None, df=None):
         # if no df specified create a task that contains this parameters
         return task.Task([params])
     else:
+        columns = check._columns_index_to_name(columns, df)
+        conditions = check._conditions_columns_index_to_name(conditions, df)
+        if having:
+            having = check._conditions_columns_index_to_name(having, df)
         Config._grouprule_params_check(params, "Erroneous params")
         check.grouprule_run_check(columns, conditions, having, df)
         todo = _grouprule_todo(columns, conditions, having, df)
@@ -634,6 +642,7 @@ def entropy(column, df=None):
     """
     # make a dict representing the parameters
     # either needed to make the Task instance or to check params
+    column = check._columns_index_to_name([column], df)[0]
     params = {"metric": "entropy", "column": column}
 
     if df is None:
@@ -700,6 +709,7 @@ def mutual_info(when, then, df=None):
         return task.Task([params])
     else:
         # if df is specified run now
+        when, then = check._columns_index_to_name([when, then], df)
         Config._mutual_info_params_check(params, "Erroneous parameters")
         check.mutual_info_run_check(when, then, df)
 
