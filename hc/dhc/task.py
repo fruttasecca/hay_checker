@@ -334,7 +334,11 @@ class Task(_Task):
                 elif "timeFormat" in metric:
                     metric["scores"] = [str(score) + " seconds" for score in scores]
             elif metric["metric"] == "rule":
-                scores = [(collected[index] / total_rows) * 100]
-                index += 1
-                metric["scores"] = scores
+                if total_rows == 0:
+                    index += 1
+                    metric["scores"] = [100.]
+                else:
+                    scores = [(collected[index] / total_rows) * 100]
+                    index += 1
+                    metric["scores"] = scores
         return metrics
