@@ -314,9 +314,14 @@ class Task(_Task):
             elif metric["metric"] == "timeliness":
                 ncolumns = len(metric.get("columns"))
                 scores = []
-                for _ in range(ncolumns):
-                    scores.append((collected[index] / total_rows) * 100)
-                    index += 1
+                if total_rows == 0:
+                    for _ in range(ncolumns):
+                        scores.append(100.)
+                    index += ncolumns
+                else:
+                    for _ in range(ncolumns):
+                        scores.append((collected[index] / total_rows) * 100)
+                        index += 1
                 metric["scores"] = scores
             elif metric["metric"] == "freshness":
                 ncolumns = len(metric.get("columns"))
