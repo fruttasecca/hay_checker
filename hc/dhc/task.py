@@ -301,11 +301,16 @@ class Task(_Task):
                 """
                 ncolumns = len(metric.get("columns", ["placeholder"]))
                 scores = []
-                for _ in range(ncolumns):
-                    scores.append((collected[index] / total_rows) * 100)
-                    index += 1
-                metric["scores"] = scores
 
+                if total_rows == 0:
+                    for _ in range(ncolumns):
+                        scores.append(100.)
+                    index += ncolumns
+                else:
+                    for _ in range(ncolumns):
+                        scores.append((collected[index] / total_rows) * 100)
+                        index += 1
+                metric["scores"] = scores
             elif metric["metric"] == "timeliness":
                 ncolumns = len(metric.get("columns"))
                 scores = []
