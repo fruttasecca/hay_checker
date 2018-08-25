@@ -1,8 +1,5 @@
 """
 Module containing metrics for the distributed version of hay_checker.
-TODO: check if its possible to ignore the year, month, day of timestamps, to
-make timeliness/freshness more handy while using timeFormat
-TODO format results to hours, days, minutes whatever
 """
 
 from datetime import datetime
