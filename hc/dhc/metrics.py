@@ -101,8 +101,7 @@ def _deduplication_approximated_todo(columns, df):
     :return: Pyspark columns representing what to compute.
     """
     if columns is None:
-        # 1 count distinct, on all columns
-        todo = [approx_count_distinct(*[col(c) for c in df.columns])]
+        print("Approximated count distinct spanning over the whole row is currently not supported")
     else:
         # multiple count distinct, one column each
         todo = [approx_count_distinct(col(c)).alias(c) for c in columns]
