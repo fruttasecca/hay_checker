@@ -21,7 +21,7 @@ class TestCompleteness(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCompleteness, self).__init__(*args, **kwargs)
 
-        self.spark = SparkSession.builder.master("local[2]").appName("runtime_checks_tests").getOrCreate()
+        self.spark = SparkSession.builder.master("local[2]").appName("completeness_tests").getOrCreate()
         self.spark.sparkContext.setLogLevel("ERROR")
 
     def test_singlecolumns_empty(self):
@@ -42,7 +42,7 @@ class TestCompleteness(unittest.TestCase):
         schema = [StructField("c1", IntegerType(), True), StructField("c2", StringType(), True)]
         df = self.spark.createDataFrame(data, StructType(schema))
 
-        r = completeness(df=df)
+        r = completeness(df=df)[0]
         self.assertEqual(r, 100.)
 
     def test_singlecolumns_full(self):
@@ -67,7 +67,7 @@ class TestCompleteness(unittest.TestCase):
         r = completeness(df=df)[0]
         self.assertEqual(r, 100.0)
 
-    def test_singlecolumns_empty(self):
+    def test_singlecolumns_allnull(self):
         data = pd.DataFrame()
         data["c1"] = [chr(i) for i in range(100)]
         data["c2"] = [i for i in range(100)]
@@ -82,7 +82,7 @@ class TestCompleteness(unittest.TestCase):
         self.assertEqual(r2, 0.0)
         self.assertEqual(r3, 0.0)
 
-    def test_wholetable_empty(self):
+    def test_wholetable_allnull(self):
         data = pd.DataFrame()
         data["c1"] = [chr(i) for i in range(100)]
         data["c2"] = [i for i in range(100)]
