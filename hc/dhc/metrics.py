@@ -186,7 +186,8 @@ def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
                     todo.append(sum(when(value_long - col(c).cast("long") > 0, 1).otherwise(0)).alias(c))
                 elif types[c] == "string":
                     todo.append(
-                        sum(when(value_long - to_timestamp(c, timeFormat).cast("long") > 0, 1).otherwise(0)).alias(c))
+                        sum(when(value_long - to_timestamp(col(c), timeFormat).cast("long") > 0, 1).otherwise(0)).alias(
+                            c))
                 else:
                     print(
                         "Type of a column on which the timeliness metric is run must be either timestamp or string, if "
@@ -214,7 +215,7 @@ def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
                     so years, months, days will be basically ignored.
                     """
                     todo.append(
-                        sum(when(value - to_timestamp(c, timeFormat).cast("long") > 0, 1).otherwise(0)).alias(c))
+                        sum(when((value_long - to_timestamp(c, timeFormat).cast("long")) > 0, 1).otherwise(0)).alias(c))
                 else:
                     print(
                         "Type of a column on which the timeliness metric is run must be either timestamp or string, if "
