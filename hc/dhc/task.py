@@ -270,22 +270,29 @@ class Task(_Task):
             if metric["metric"] == "completeness":
                 ncolumns = len(metric.get("columns", []))
                 normalizer = total_rows if ncolumns > 0 else total_rows * total_columns
-               
-                if normalizer == 0:  # in case the dataframe is empty
-                    metric["scores"] = 100.0
-                elif ncolumns == 0:
+
+                if ncolumns == 0:
                     # aggregate over all columns of the table
                     scores = 0
-                    for _ in range(total_columns):
-                        scores += (collected[index] / normalizer)
-                        index += 1
+                    if normalizer == 0:
+                        scores = 1.
+                        index += total_columns
+                    else:
+                        for _ in range(total_columns):
+                            scores += (collected[index] / normalizer)
+                            index += 1
                     metric["scores"] = [scores * 100]
                 else:
                     # aggregate over columns parameter
                     scores = []
-                    for _ in range(ncolumns):
-                        scores.append((collected[index] / normalizer) * 100)
-                        index += 1
+                    if normalizer == 0:
+                        for _ in range(ncolumns):
+                            scores.append(100.)
+                        index += ncolumns
+                    else:
+                        for _ in range(ncolumns):
+                            scores.append((collected[index] / normalizer) * 100)
+                            index += 1
                     metric["scores"] = scores
             elif metric["metric"] == "deduplication" or metric["metric"] == "deduplication_approximated":
                 """
