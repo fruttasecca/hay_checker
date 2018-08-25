@@ -310,9 +310,9 @@ class Task(_Task):
                     scores.append((collected[index]))
                     index += 1
                 if "dateFormat" in metric:
-                    metric["scores"] = [int(score) for score in scores]
+                    metric["scores"] = [str(score) + " days" for score in scores]
                 elif "timeFormat" in metric:
-                    metric["scores"] = [util._seconds_to_timeFormat(score) for score in scores]
+                    metric["scores"] = [str(score) + " seconds" for score in scores]
             elif metric["metric"] == "rule":
                 scores = [(collected[index] / total_rows) * 100]
                 index += 1

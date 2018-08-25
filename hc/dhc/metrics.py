@@ -132,6 +132,22 @@ def deduplication_approximated(columns=None, df=None):
         return t.run(df)[0]["scores"]
 
 
+def contains_date(format):
+    """
+    Check if a format (string) contains a date.
+    (It currently check if the string contains tokens from the simpledateformat
+    https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+    that represent, years, months, days).
+    :param format: A string format representing a simple date format.
+    :return: True if values part of a date are contained in the format string.
+    """
+    part_of_date_tokens = "GyYMwWdDFEu"
+    for token in part_of_date_tokens:
+        if token in format:
+            return True
+    return False
+
+
 def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
@@ -150,29 +166,61 @@ def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
     types = dict(df.dtypes)
 
     if dateFormat:
-        value = to_date(lit(value), dateFormat)
+        value_date = to_date(lit(value), dateFormat)
         for c in columns:
             if types[c] == "timestamp" or types[c] == "date":
-                todo.append(sum(when(datediff(value, c) > 0, 1).otherwise(0)).alias(c))
+                todo.append(sum(when(datediff(value_date, c) > 0, 1).otherwise(0)).alias(c))
             elif types[c] == "string":
-                todo.append(sum(when(datediff(value, to_date(c, dateFormat)) > 0, 1).otherwise(0)).alias(c))
+                todo.append(sum(when(datediff(value_date, to_date(c, dateFormat)) > 0, 1).otherwise(0)).alias(c))
             else:
                 print(
                     "Type of a column on which the timeliness metric is run must be either timestamp, "
                     "date or string, if the metric is being run on dateFormat.")
                 exit()
     elif timeFormat:
-        value = to_timestamp(lit(value), timeFormat).cast("long")
-        for c in columns:
-            if types[c] == "timestamp":
-                todo.append(sum(when(value - col(c).cast("long") > 0, 1).otherwise(0)).alias(c))
-            elif types[c] == "string":
-                todo.append(sum(when(value - to_timestamp(c, timeFormat).cast("long") > 0, 1).otherwise(0)).alias(c))
-            else:
-                print(
-                    "Type of a column on which the timeliness metric is run must be either timestamp or string, if "
-                    "the metric is being run on a timeFormat")
-                exit()
+        value_long = to_timestamp(lit(value), timeFormat).cast("long")
+        # check if value contains a date and not only hours, minutes, seconds
+        has_date = contains_date(timeFormat)
+        if has_date:
+            for c in columns:
+                if types[c] == "timestamp":
+                    todo.append(sum(when(value_long - col(c).cast("long") > 0, 1).otherwise(0)).alias(c))
+                elif types[c] == "string":
+                    todo.append(
+                        sum(when(value_long - to_timestamp(c, timeFormat).cast("long") > 0, 1).otherwise(0)).alias(c))
+                else:
+                    print(
+                        "Type of a column on which the timeliness metric is run must be either timestamp or string, if "
+                        "the metric is being run on a timeFormat")
+                    exit()
+        else:
+            for c in columns:
+                if types[c] == "timestamp":
+                    """
+                    If there is no years, months, days we must ignore the years, months, days in the timestamp.
+                    """
+                    value_long = to_timestamp(lit(value), timeFormat)
+                    # remove years, months, days
+                    value_long = value_long.cast("long") - value_long.cast("date").cast("timestamp").cast("long")
+
+                    # check for difference, but only considering hours, minutes, seconds
+                    todo.append(sum(
+                        when(
+                            value_long - (col(c).cast("long") - col(c).cast("date").cast("timestamp").cast("long")) > 0,
+                            1).otherwise(0)).alias(c))
+                elif types[c] == "string":
+                    """
+                    If there are no years, months, days and the column is in the same format, meaning that it also
+                    has no years, months, days, this means that they will be both initialized to the same year, month, day;
+                    so years, months, days will be basically ignored.
+                    """
+                    todo.append(
+                        sum(when(value - to_timestamp(c, timeFormat).cast("long") > 0, 1).otherwise(0)).alias(c))
+                else:
+                    print(
+                        "Type of a column on which the timeliness metric is run must be either timestamp or string, if "
+                        "the metric is being run on a timeFormat")
+                    exit()
     return todo
 
 
@@ -238,17 +286,49 @@ def _freshness_todo(columns, df, dateFormat=None, timeFormat=None):
                     "date or string, if the metric is being run on dateFormat.")
                 exit()
     elif timeFormat:
-        now = to_timestamp(lit("1970-01-01 " + str(datetime.now())[11:19])).cast("long")
-        for c in columns:
-            if types[c] == "timestamp":
-                todo.append(avg(abs(col(c).cast("long") - now)).alias(c))
-            elif types[c] == "string":
-                todo.append(avg(abs(to_timestamp(c, timeFormat).cast("long") - now)).alias(c))
-            else:
-                print(
-                    "Type of a column on which the freshness metric is run must be either timestamp"
-                    "or string, if the metric is being run on timeFormat.")
-                exit()
+        # check if value contains a date and not only hours, minutes, seconds
+        has_date = contains_date(timeFormat)
+
+        current = current_timestamp()
+        if has_date:
+            """
+            If the time format also contains a date it means the user is also interested in comparing years, months, days, 
+            etc.
+            """
+            now = current.cast("long")
+            for c in columns:
+                if types[c] == "timestamp":
+                    todo.append(avg(abs(col(c).cast("long") - now)).alias(c))
+                elif types[c] == "string":
+                    todo.append(avg(abs(to_timestamp(c, timeFormat).cast("long") - now)).alias(c))
+                else:
+                    print(
+                        "Type of a column on which the freshness metric is run must be either timestamp"
+                        "or string, if the metric is being run on timeFormat.")
+                    exit()
+        else:
+            """
+            If the timestamp has no date the user is not interested in differences that consider years, months, days, but
+            only hours, minutes, seconds.
+            """
+            now = current
+            now = now.cast("long") - now.cast("date").cast("timestamp").cast("long")
+            for c in columns:
+                if types[c] == "timestamp":
+                    todo.append(avg(
+                        abs((col(c).cast("long") - col(c).cast("date").cast("timestamp").cast("long")) - now)).alias(c))
+                elif types[c] == "string":
+                    """
+                    Need to remove seconds from years, months and days here as well because even if the format
+                    does not specify anything for those values they are initialized to something by default.
+                    """
+                    todo.append(avg(abs((to_timestamp(c, timeFormat).cast("long") - to_timestamp(c, timeFormat).cast(
+                        "date").cast("timestamp").cast("long")) - now)).alias(c))
+                else:
+                    print(
+                        "Type of a column on which the freshness metric is run must be either timestamp"
+                        "or string, if the metric is being run on timeFormat.")
+                    exit()
     return todo
 
 
