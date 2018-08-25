@@ -24,14 +24,25 @@ class TestCompleteness(unittest.TestCase):
         self.spark = SparkSession.builder.master("local[2]").appName("runtime_checks_tests").getOrCreate()
         self.spark.sparkContext.setLogLevel("ERROR")
 
-    def test_empty(self):
+    def test_singlecolumns_empty(self):
         data = pd.DataFrame()
         data["c1"] = []
         data["c2"] = []
         schema = [StructField("c1", IntegerType(), True), StructField("c2", StringType(), True)]
         df = self.spark.createDataFrame(data, StructType(schema))
 
-        r = completeness(["c1", "c2"], df)
+        r1, r2 = completeness(["c1", "c2"], df)
+        self.assertEqual(r1, 100.)
+        self.assertEqual(r2, 100.)
+
+    def test_wholetable_empty(self):
+        data = pd.DataFrame()
+        data["c1"] = []
+        data["c2"] = []
+        schema = [StructField("c1", IntegerType(), True), StructField("c2", StringType(), True)]
+        df = self.spark.createDataFrame(data, StructType(schema))
+
+        r = completeness(df=df)
         self.assertEqual(r, 100.)
 
     def test_singlecolumns_full(self):
