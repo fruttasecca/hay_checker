@@ -398,6 +398,20 @@ def _and_conditions_as_columns(conditions):
     return result
 
 
+def andcheckjoin(then):
+    """
+    Returns a column which is the and concatenation of different checks,
+    1 for each column in 'then', checking for each distinct_then%s, where %s is a column
+    in 'then', to be equal to 1.
+    :param then: 'then' columns of the constraint metric
+    :return:
+    """
+    res = col("distinct_then%s" % then[0]) == 1
+    for c in then[1:]:
+        res = res & (col("distinct_then%s" % c) == 1)
+    return res
+
+
 def _constraint_todo(when, then, conditions, df):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
@@ -419,12 +433,13 @@ def _constraint_todo(when, then, conditions, df):
     todo = todo.groupBy(*when)
 
     # for each group, count the total and the number of distinct 'thens' (should be 1 if the constraint is respected)
-    todo = todo.agg(count("*").alias("metrics_check_count_1"), countDistinct(*then).alias("distinct_then"))
+    todo = todo.agg(count("*").alias("metrics_check_count_1"),
+                    *[countDistinct(c).alias("distinct_then%s" % c) for c in then])
 
     # given the new 'table', aggregate over it, summing over all total rows to get the total number of filtered
     # rows, and summing the count only of groups that have one distinct then value
     todo = todo.agg(sum("metrics_check_count_1").alias("all_filtered"), sum(
-        pyspark.sql.functions.when(col("distinct_then") == 1, col("metrics_check_count_1")).otherwise(0)).alias(
+        pyspark.sql.functions.when(andcheckjoin(then), col("metrics_check_count_1")).otherwise(0)).alias(
         "respecting"))
 
     # get the ratio between the tuples respecting the constraint and the total, where total is the number of

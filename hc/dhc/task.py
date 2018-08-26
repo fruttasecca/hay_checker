@@ -112,7 +112,8 @@ class Task(_Task):
                 Task._conditions_column_index_to_name(metric["conditions"], idxdict, typesdict, allow_casting)
                 util.rule_run_check(metric["conditions"], df)
             elif metric["metric"] == "constraint":
-                when, then = Task._columns_index_to_name([metric["when"], metric["then"]], idxdict)
+                when = Task._columns_index_to_name(metric["when"], idxdict)
+                then = Task._columns_index_to_name(metric["then"], idxdict)
                 metric["when"] = when
                 metric["then"] = then
                 if "conditions" in metric:
@@ -132,9 +133,8 @@ class Task(_Task):
                 metric["column"] = Task._columns_index_to_name([metric["column"]], idxdict)[0]
                 util.entropy_run_check(metric["column"], df)
             elif metric["metric"] == "mutual_info":
-                when = metric.get("when")
-                then = metric.get("then")
-                when, then = Task._columns_index_to_name([when, then], idxdict)
+                when = Task._columns_index_to_name([metric["when"]], idxdict)[0]
+                then = Task._columns_index_to_name([metric["then"]], idxdict)[0]
                 metric["when"] = when
                 metric["then"] = then
                 util.mutual_info_run_check(when, then, df)
@@ -230,7 +230,11 @@ class Task(_Task):
             conditions = constraint.get("conditions", None)
             todo = m._constraint_todo(when, then, conditions, df)
             # get first row, first element of that row, multiply by 100:w
-            constraint["scores"] = [list(todo.collect()[0])[0] * 100]
+            constraint["scores"] = [list(todo.collect()[0])[0]]
+            if constraint["scores"][0] is None:
+                constraint["scores"] = [100.]
+            else:
+                constraint["scores"][0] = constraint["scores"][0] * 100.
 
         # run groupRule, one at a time
         for grouprule in grouprules:
