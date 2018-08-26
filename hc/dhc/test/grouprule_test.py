@@ -131,7 +131,7 @@ class TestGroupRule(unittest.TestCase):
         having2 = {"column": "c4", "operator": "eq", "value": 50/3, "aggregator": "avg"}
         havings = [having1, having2]
         r = grouprule([0, "c2"], havings, conditions, df)[0]
-        self.assertEqual(r, (1/4) * 100)
+        self.assertEqual(r, 25.)
 
         condition1 = {"column": "c3", "operator": "lt", "value": 50}
         condition2 = {"column": "c3", "operator": "gt", "value": 1.0}
