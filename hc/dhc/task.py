@@ -246,7 +246,7 @@ class Task(_Task):
             todo = m._entropy_todo(column, df)
             entropy["scores"] = [list(todo.collect()[0])[0]]
             if entropy["scores"][0] is None:
-                entropy["scores"] = 0
+                entropy["scores"] = [0]
 
         # run mutual infos, one at a time
         for info in mutual_infos:
@@ -254,6 +254,8 @@ class Task(_Task):
             then = info["then"]
             todo = m._mutual_info_todo(when, then, df)
             info["scores"] = [list(todo.collect()[0])[0]]
+            if info["scores"][0] is None:
+                info["scores"] = [0]
 
         # sort metrics and return them after removing the id
         metrics = simple_metrics + constraints + grouprules + entropies + mutual_infos

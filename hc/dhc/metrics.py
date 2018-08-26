@@ -6,7 +6,7 @@ from datetime import datetime
 
 import pyspark
 from pyspark.sql.functions import isnan, when, count, col, sum, countDistinct, avg, to_date, lit, \
-    abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date, approx_count_distinct, log2
+    abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date, approx_count_distinct, log2, log
 
 from . import task
 
@@ -664,17 +664,19 @@ def _mutual_info_todo(when, then, df):
     pairs_table = df.groupBy([when, then]).agg(count("*").alias("_pairs_count"))
     pairs_table.cache()
 
-    when_table = pairs_table.groupBy(when).agg(sum("_pairs_count").alias("_when_count"))
-    then_table = pairs_table.groupBy(then).agg(sum("_pairs_count").alias("_then_count"))
-    final_table = pairs_table.join(when_table, when).join(then_table, then)
+    when_table = pairs_table.groupBy(col(when).alias("wt")).agg(sum("_pairs_count").alias("_when_count"))
+    then_table = pairs_table.groupBy(col(then).alias("tt")).agg(sum("_pairs_count").alias("_then_count"))
+    final_table = pairs_table.join(when_table, pairs_table[when].eqNullSafe(when_table["wt"]))
+    final_table = final_table.join(then_table, final_table[then].eqNullSafe(then_table["tt"]))
+
     # prepare 4 subformulas of MI to later sum, plus the total
-    todo = final_table.select(sum(col("_pairs_count") * log2(col("_pairs_count"))).alias("_s1"),  # c_xy * logc_xy
+    todo = final_table.select(sum(col("_pairs_count") * log(col("_pairs_count"))).alias("_s1"),  # c_xy * logc_xy
                               sum(col("_pairs_count")).alias("_s2"),  # c_xy
-                              sum(col("_pairs_count") * log2(col("_when_count"))).alias("_s3"),  # c_xy * logc_x
-                              sum(col("_pairs_count") * log2(col("_then_count"))).alias("_s4"),  # c_xy * logc_y
+                              sum(col("_pairs_count") * log(col("_when_count"))).alias("_s3"),  # c_xy * logc_x
+                              sum(col("_pairs_count") * log(col("_then_count"))).alias("_s4"),  # c_xy * logc_y
                               sum(col("_pairs_count")).alias("_total")  # total
                               )
-    todo = todo.select((col("_s1") / col("_total")) + (log2(col("_total")) * (col("_s2") / col("_total"))) - (
+    todo = todo.select((col("_s1") / col("_total")) + (log(col("_total")) * (col("_s2") / col("_total"))) - (
             (col("_s3")) / col("_total")) - ((col("_s4")) / col("_total")).alias("mutual_info"))
     return todo
 
