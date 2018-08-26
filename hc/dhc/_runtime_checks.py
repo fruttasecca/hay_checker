@@ -121,7 +121,8 @@ def grouprule_run_check(columns, conditions, having, df):
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
 
     for cond in having:
-        assert cond["column"] in df.columns, "Column '%s' is not a column part of the dataframe" % cond["column"]
+        assert cond["column"] in df.columns or cond[
+            "column"] == "*", "Column '%s' is not a column part of the dataframe" % cond["column"]
 
     if conditions is not None:
         for cond in conditions:
