@@ -7,6 +7,7 @@ on different data.
 import copy
 from operator import itemgetter
 
+import numpy as np
 from pyspark.sql.functions import count
 
 from .._common._task import _Task
@@ -275,6 +276,7 @@ class Task(_Task):
     @staticmethod
     def _add_scores_to_metrics(metrics, collected, has_count_all, df):
         index = 0
+        collected = np.array(collected)
         total_rows = collected[-1] if has_count_all else None
         total_columns = len(df.columns)
 
