@@ -245,6 +245,8 @@ class Task(_Task):
             column = entropy["column"]
             todo = m._entropy_todo(column, df)
             entropy["scores"] = [list(todo.collect()[0])[0]]
+            if entropy["scores"][0] is None:
+                entropy["scores"] = 0
 
         # run mutual infos, one at a time
         for info in mutual_infos:
