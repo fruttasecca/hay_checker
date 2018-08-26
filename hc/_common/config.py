@@ -13,7 +13,7 @@ class Config(object):
     # possible operators for conditions
     _allowed_operators = ["eq", "gt", "lt"]
     # possible aggregators for having conditions
-    _allowed_aggregators = ["min", "avg", "max", "count", "sqrt", "sum"]
+    _allowed_aggregators = ["min", "avg", "max", "count", "sum"]
     # possible time/date format digits
     _allowed_digits = ["D", "d", "M", "m", "Y", "y", "H", "h", "M", "m", "S", "s"]
 
@@ -291,8 +291,9 @@ class Config(object):
             if have["operator"] == "gt" or have["operator"] == "lt":
                 assert type(have["value"]) is int or type(have["value"]) is float, "Non numerical value for numerical " \
                                                                                    "operator. "
-            if "aggregator" in have:
-                assert have["aggregator"] in Config._allowed_aggregators
+            assert have["aggregator"] in Config._allowed_aggregators
+            if have["column"] == "*":
+                assert have["aggregator"] == "count"
 
         # check conditions
         if "conditions" in metric:
@@ -306,7 +307,7 @@ class Config(object):
                         type(cond["operator"]) is str and cond["operator"] in Config._allowed_operators), error_msg
                 assert "value" in cond and (
                         type(cond["value"]) is str or type(cond["value"]) is int or type(cond["value"]) is float)
-                if have["operator"] == "gt" or have["operator"] == "lt":
+                if cond["operator"] == "gt" or cond["operator"] == "lt":
                     assert type(cond["value"]) is int or type(
                         cond["value"]) is float, "Non numerical value for numerical " \
                                                  "operator. "
