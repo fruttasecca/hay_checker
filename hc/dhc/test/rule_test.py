@@ -21,7 +21,7 @@ class TestRule(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestRule, self).__init__(*args, **kwargs)
 
-        self.spark = SparkSession.builder.master("local[2]").appName("rule test").getOrCreate()
+        self.spark = SparkSession.builder.master("local[2]").appName("rule_test").getOrCreate()
         self.spark.sparkContext.setLogLevel("ERROR")
 
     def test_empty(self):
