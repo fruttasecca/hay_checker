@@ -521,8 +521,6 @@ def _having_aggregations_as_columns(condition):
             return pyspark.sql.functions.avg(col(column).cast(casted_to))
         elif aggregator == "sum":
             return pyspark.sql.functions.sum(col(column).cast(casted_to))
-        elif aggregator == "sqrt":
-            return pyspark.sql.functions.sqrt(col(column).cast(casted_to))
         else:
             print("Aggregator %s not recognized" % aggregator)
             exit()
@@ -537,8 +535,6 @@ def _having_aggregations_as_columns(condition):
             return pyspark.sql.functions.avg(column)
         elif aggregator == "sum":
             return pyspark.sql.functions.sum(column)
-        elif aggregator == "sqrt":
-            return pyspark.sql.functions.sqrt(column)
         else:
             print("Aggregator %s not recognized" % aggregator)
             exit()
@@ -559,11 +555,11 @@ def _having_constraints_as_column(having):
     # add the rest
     for cond in having[1:]:
         if cond["operator"] == "gt":
-            result = result & col("_grouprule_h%i" % index) > cond["value"]
+            result = result & (col("_grouprule_h%i" % index) > cond["value"])
         elif cond["operator"] == "lt":
-            result = result & col("_grouprule_h%i" % index) < cond["value"]
+            result = result & (col("_grouprule_h%i" % index) < cond["value"])
         elif cond["operator"] == "eq":
-            result = result & col("_grouprule_h%i" % index) == cond["value"]
+            result = result & (col("_grouprule_h%i" % index) == cond["value"])
         index += 1
     return result
 

@@ -65,7 +65,7 @@ class Task(_Task):
             if type(col) is int:
                 assert 0 <= col < len(idxdict), "column index '%s' out of range" % col
                 cond["column"] = idxdict[col]
-            if typesdict[cond["column"]] == "string" and type(cond["value"]) != str:
+            if cond["column"] != "*" and typesdict[cond["column"]] == "string" and type(cond["value"]) != str:
                 assert allow_casting, "Type of column '%s' is string, but 'value' %s is of numeric type, and casting " \
                                       "is not allowed" % (
                                           col, cond["value"])
@@ -242,7 +242,11 @@ class Task(_Task):
             having = grouprule["having"]
             conditions = grouprule.get("conditions", None)
             todo = m._grouprule_todo(columns, conditions, having, df)
-            grouprule["scores"] = [list(todo.collect()[0])[0] * 100]
+            grouprule["scores"] = [list(todo.collect()[0])[0]]
+            if grouprule["scores"][0] is None:
+                grouprule["scores"] = [100.]
+            else:
+                grouprule["scores"][0] = grouprule["scores"][0] * 100.
 
         # run entropies, one at a time
         for entropy in entropies:
