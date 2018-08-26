@@ -61,7 +61,7 @@ class _Task(object):
         elif isinstance(input, _Task):
             # metrics should already have been processed, no need to check here
             self._metrics.extend(input._metrics)
+        else:
+            "Input must be either a list of dicts, a dict or another Task instance"
+            exit()
         return self
-
-
-
