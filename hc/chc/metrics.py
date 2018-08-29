@@ -99,14 +99,16 @@ def contains_date(format):
     return False
 
 
-def to_datetime_cached(s):
+def to_datetime_cached(s, format):
     """
     Transform a series of strings (dates) to datetimes, with a dict
     to cache results.
     :param s:
+    :param format:
     :return:
     """
-    dates = {date: pd.to_datetime(date, errors="coerce") for date in s.unique()}
+    dates = {date: pd.to_datetime(date, errors="coerce", format=format) for date in s.dropna().unique()}
+    dates[np.NaN] = None
     return s.map(dates)
 
 
@@ -119,6 +121,17 @@ def set_year_month_day(series, year=None, month=None, day=None):
          "minute": series.dt.minute,
          "second": series.dt.second
          }, errors="coerce")
+
+
+def _convert_format(format):
+    res = []
+    seen = set()
+    format = [x for x in format if not ((x.isalpha() and x in seen) or seen.add(x))]
+    for char in format:
+        if char.isalpha():
+            res.append("%")
+        res.append(char)
+    return "".join(res)
 
 
 def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
@@ -136,17 +149,19 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
     todo = dict()
 
     if dateFormat:
+        cdateFormat = _convert_format(dateFormat)
+        cvalue = pd.to_datetime(value, format=cdateFormat)
         for col in columns:
             if types[col] == str:
                 def _timeliness_agg(x):
-                    s = to_datetime_cached(x)
-                    return (s < value).mean()
+                    s = to_datetime_cached(x, cdateFormat)
+                    return (s < cvalue).mean()
 
                 _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "dateFormat", dateFormat, value))
                 todo[col] = [_timeliness_agg]
             elif types[col] == pd._libs.tslib.Timestamp:
                 def _timeliness_agg(x):
-                    return (x < value).mean()
+                    return (x < cvalue).mean()
 
                 _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "dateFormat", dateFormat, value))
                 todo[col] = [_timeliness_agg]
@@ -156,20 +171,23 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
                     "or string, if the metric is being run on dateFormat.")
                 exit()
     elif timeFormat:
+        ctimeFormat = _convert_format(timeFormat)
+        cvalue = pd.to_datetime(value, format=ctimeFormat)
+
         # check if value contains a date and not only hours, minutes, seconds
         has_date = contains_date(timeFormat)
         if has_date:
             for col in columns:
                 if types[col] == str:
                     def _timeliness_agg(x):
-                        s = to_datetime_cached(x)
-                        return (s < value).mean()
+                        s = to_datetime_cached(x, ctimeFormat)
+                        return (s < cvalue).mean()
 
                     _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "timeFormat", timeFormat, value))
                     todo[col] = [_timeliness_agg]
                 elif types[col] == pd._libs.tslib.Timestamp:
                     def _timeliness_agg(x):
-                        return (x < value).mean()
+                        return (x < cvalue).mean()
 
                     _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "timeFormat", timeFormat, value))
                     todo[col] = [_timeliness_agg]
@@ -190,16 +208,16 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _timeliness_agg(x):
-                        s = to_datetime_cached(x)
+                        s = to_datetime_cached(x, ctimeFormat)
                         s = set_year_month_day(s, year, month, day)
-                        return (s < value).mean()
+                        return (s < cvalue).mean()
 
                     _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "timeFormat", timeFormat, value))
                     todo[col] = [_timeliness_agg]
                 elif types[col] == pd._libs.tslib.Timestamp:
                     def _timeliness_agg(x):
                         x = set_year_month_day(x, year, month, day)
-                        return (x < value).mean()
+                        return (x < cvalue).mean()
 
                     _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "timeFormat", timeFormat, value))
                     todo[col] = [_timeliness_agg]
