@@ -284,11 +284,11 @@ class Task(_Task):
         # run mutual infos, one at a time
         for info in mutual_infos:
             if len(df.index) == 0:
-                info["score"] = [0.]
+                info["scores"] = [0.]
             else:
                 when = info["when"]
                 then = info["then"]
-                info["score"] = [m._mutual_info_compute(when, then, df)]
+                info["scores"] = [m._mutual_info_compute(when, then, df)]
 
         # sort metrics and return them after removing the id
         metrics = simple_metrics + rules + constraints + grouprules + entropies + mutual_infos
