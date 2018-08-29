@@ -758,7 +758,7 @@ def _entropy_compute(column, df):
     :param df:
     :return: Result of the metric.
     """
-    value, counts = np.unique(df[column], return_counts=True)
+    value, counts = np.unique(df[column].dropna(), return_counts=True)
     norm_counts = counts / counts.sum()
     return -(norm_counts * np.log2(norm_counts)).sum()
 

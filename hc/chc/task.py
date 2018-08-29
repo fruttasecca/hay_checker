@@ -277,9 +277,9 @@ class Task(_Task):
         # run entropies, one at a time
         for entropy in entropies:
             if len(df.index) == 0:
-                entropy["score"] = [0.]
+                entropy["scores"] = [0.]
             else:
-                entropy["score"] = [m._entropy_compute(entropy["column"], df)]
+                entropy["scores"] = [m._entropy_compute(entropy["column"], df)]
 
         # run mutual infos, one at a time
         for info in mutual_infos:
