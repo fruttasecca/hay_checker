@@ -85,14 +85,10 @@ def deduplication(columns=None, df=None):
 
 def contains_date(format):
     """
-    Check if a format (string) contains a date.
-    (It currently check if the string contains tokens from the simpledateformat
-    https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
-    that represent, years, months, days).
-    :param format: A string format representing a simple date format.
-    :return: True if values part of a date are contained in the format string.
+    strtime tokens
+    todo add more
     """
-    part_of_date_tokens = "GyYMwWdDFEu"
+    part_of_date_tokens = "dmyY"
     for token in part_of_date_tokens:
         if token in format:
             return True
@@ -112,7 +108,7 @@ def to_datetime_cached(s, format):
     return s.map(dates)
 
 
-def set_year_month_day(series, year=None, month=None, day=None):
+def _set_year_month_day(series, year=None, month=None, day=None):
     return pd.to_datetime(
         {'year': year,
          'month': month,
@@ -120,6 +116,17 @@ def set_year_month_day(series, year=None, month=None, day=None):
          "hour": series.dt.hour,
          "minute": series.dt.minute,
          "second": series.dt.second
+         }, errors="coerce")
+
+
+def _set_hour_minute_second(series, hour=None, minute=None, second=None):
+    return pd.to_datetime(
+        {'year': series.dt.year,
+         'month': series.dt.month,
+         'day': series.dt.day,
+         "hour": hour,
+         "minute": minute,
+         "second": second
          }, errors="coerce")
 
 
@@ -205,18 +212,22 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
             year = now.year
             month = now.month
             day = now.day
+            cvalue = pd.to_datetime(value, format=ctimeFormat)
+            cvalue = pd.Timestamp(second=cvalue.second, hour=cvalue.hour, minute=cvalue.minute, day=day, month=month,
+                                  year=year)
+
             for col in columns:
                 if types[col] == str:
                     def _timeliness_agg(x):
                         s = to_datetime_cached(x, ctimeFormat)
-                        s = set_year_month_day(s, year, month, day)
+                        s = _set_year_month_day(s, year, month, day)
                         return (s < cvalue).mean()
 
                     _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "timeFormat", timeFormat, value))
                     todo[col] = [_timeliness_agg]
                 elif types[col] == pd._libs.tslib.Timestamp:
                     def _timeliness_agg(x):
-                        x = set_year_month_day(x, year, month, day)
+                        x = _set_year_month_day(x, year, month, day)
                         return (x < cvalue).mean()
 
                     _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "timeFormat", timeFormat, value))
@@ -276,17 +287,20 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
     todo = dict()
 
     if dateFormat:
-        now = pd.to_datetime("today")
+        cdateFormat = _convert_format(dateFormat)
+        now = pd.Timestamp.today()
         for col in columns:
             if types[col] == str:
                 def _freshness_agg(s):
-                    s = to_datetime_cached(s)
+                    s = to_datetime_cached(s, cdateFormat)
+                    s = _set_hour_minute_second(s, 0, 0, 0)
                     return (now - s).astype("timedelta64[D]").abs().mean()
 
                 _freshness_agg.__name__ = ("_freshness_agg_%s_%s_%s" % (col, "dateFormat", dateFormat))
                 todo[col] = [_freshness_agg]
             elif types[col] == pd._libs.tslib.Timestamp:
                 def _freshness_agg(s):
+                    s = _set_hour_minute_second(s, 0, 0, 0)
                     return (now - s).astype("timedelta64[D]").abs().mean()
 
                 _freshness_agg.__name__ = ("_freshness_agg_%s_%s_%s" % (col, "dateFormat", dateFormat))
@@ -297,7 +311,8 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
                     "or string, if the metric is being run on dateFormat.")
                 exit()
     elif timeFormat:
-        now = pd.to_datetime("now")
+        ctimeFormat = _convert_format(timeFormat)
+        now = pd.Timestamp.now()
 
         # check if value contains a date and not only hours, minutes, seconds
         has_date = contains_date(timeFormat)
@@ -310,7 +325,7 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _freshness_agg(s):
-                        s = to_datetime_cached(s)
+                        s = to_datetime_cached(s, ctimeFormat)
                         return (now - s).astype("timedelta64[s]").abs().mean()
 
                     _freshness_agg.__name__ = ("_freshness_agg_%s_%s_%s" % (col, "timeFormat", timeFormat))
@@ -338,15 +353,15 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _freshness_agg(s):
-                        s = to_datetime_cached(s)
-                        s = set_year_month_day(s, year, month, day)
+                        s = to_datetime_cached(s, ctimeFormat)
+                        s = _set_year_month_day(s, year, month, day)
                         return (now - s).astype("timedelta64[s]").abs().mean()
 
                     _freshness_agg.__name__ = ("_freshness_agg_%s_%s_%s" % (col, "timeFormat", timeFormat))
                     todo[col] = [_freshness_agg]
                 elif types[col] == pd._libs.tslib.Timestamp:
                     def _freshness_agg(s):
-                        s = set_year_month_day(s, year, month, day)
+                        s = _set_year_month_day(s, year, month, day)
                         return (now - s).astype("timedelta64[s]").abs().mean()
 
                     _freshness_agg.__name__ = ("_freshness_agg_%s_%s_%s" % (col, "timeFormat", timeFormat))
