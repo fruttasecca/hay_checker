@@ -791,7 +791,12 @@ def _mutual_info_compute(when, then, df):
     :param df:
     :return: Result of the metric.
     """
-    return mutual_info_score(df[when], df[then])
+    index = (df[when].isna()) | (df[then].isna())
+    index = ~index
+    if sum(index) > 0:
+        return mutual_info_score(df[when][index], df[then][index])
+    else:
+        return 0
 
 
 def mutual_info(when, then, df=None):
