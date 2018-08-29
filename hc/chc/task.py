@@ -368,7 +368,8 @@ class Task(_Task):
                 scores = []
                 if total_rows == 0:
                     for _ in range(ncolumns):
-                        scores.append(100.)
+                        scores.append("None days" if "dateFormat" in metric else "None seconds")
+                    metric["scores"] = scores
                 else:
                     format = metric["timeFormat"] if "timeFormat" in metric else metric["dateFormat"]
                     filler = "timeFormat" if "timeFormat" in metric else "dateFormat"
