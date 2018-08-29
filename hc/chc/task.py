@@ -84,7 +84,7 @@ class Task(_Task):
         idxdict = dict(enumerate(df.columns))
         typesdict = dict()
         for col in df:
-            typesdict[col] = type(df[col].iat[0] if len(df.index) > 0 else str)
+            typesdict[col] = type(df[col].iat[0]) if len(df.index) > 0 else str
 
         for metric in metrics:
             if metric["metric"] == "completeness":
@@ -195,7 +195,7 @@ class Task(_Task):
 
         typesdict = dict()
         for col in df:
-            typesdict[col] = type(df[col].iat[0] if len(df.index) > 0 else str)
+            typesdict[col] = type(df[col].iat[0]) if len(df.index) > 0 else str
 
         for i, metric in enumerate(metrics):
             if metric["metric"] == "completeness":
