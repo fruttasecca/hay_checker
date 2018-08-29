@@ -343,8 +343,11 @@ class Task(_Task):
                         for col in metric["columns"]:
                             scores.append((collected[col]["nunique"] / total_rows) * 100)
                     else:
-                        unique_rows = unique_rows if unique_rows is not None else len(df.drop_duplicates().index)
-                        scores.append(unique_rows / total_rows)
+                        import pandas as pd
+                        d = pd.DataFrame()
+                        unique_rows = unique_rows if unique_rows is not None else len(
+                            df.dropna().drop_duplicates().index)
+                        scores.append((unique_rows / total_rows) * 100)
                 metric["scores"] = scores
             elif metric["metric"] == "timeliness":
                 ncolumns = len(metric.get("columns"))
