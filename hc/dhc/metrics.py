@@ -675,6 +675,8 @@ def _mutual_info_todo(when, then, df):
     """
     # group on the pair of columns, count occurrences
     pairs_table = df.groupBy([when, then]).agg(count("*").alias("_pairs_count"))
+    # ignore nulls
+    pairs_table = pairs_table.filter((~ col(when).isNull()) & (~ col(then).isNull()))
     pairs_table.cache()
 
     when_table = pairs_table.groupBy(col(when).alias("wt")).agg(sum("_pairs_count").alias("_when_count"))
