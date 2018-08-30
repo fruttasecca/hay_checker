@@ -8,7 +8,10 @@ import copy
 from operator import itemgetter
 
 import numpy as np
+import pyspark
 from pyspark.sql.functions import count
+from pyspark.sql.functions import isnan, when, count, col, sum, countDistinct, avg, to_date, lit, \
+    abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date, approx_count_distinct, log2, log
 
 from .._common._task import _Task
 from . import _runtime_checks as util
@@ -152,6 +155,7 @@ class Task(_Task):
         # run time checks on every metric before starting, substitute column indexes with names
         self._perform_run_checks(metrics, df, self._allow_casting)
 
+        typesdict = dict(df.dtypes)
         # get stuff to do for metrics that can be run together in a single pass
         todo = []
         needs_count_all = False  # if this metrics requires a count('*') to be performed
@@ -219,6 +223,11 @@ class Task(_Task):
         if needs_count_all:
             todo.append(count("*"))
 
+        # replace nans with null so that checks like nan > 0 will go false
+        numerics = ["float", "bigint", "double", "int", "long"]
+        for dcol in df.columns:
+            if typesdict[dcol] in numerics:
+                df = df.withColumn(dcol, pyspark.sql.functions.when(isnan(col(dcol)), None).otherwise(col(dcol)))
         # run and add results to the simple metrics
         if len(simple_metrics) > 0:
             collected = df.agg(*todo).collect()[0]
