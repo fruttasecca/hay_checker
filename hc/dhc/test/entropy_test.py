@@ -82,11 +82,11 @@ class TestEntropy(unittest.TestCase):
         df = df.withColumn("c3", replace_0dot_with_null(df["c3"]))
 
         r = entropy(0, df)[0]
-        self.assertAlmostEqual(r, 1., delta=0.000001)
+        self.assertAlmostEqual(r, 0., delta=0.000001)
         r = entropy(1, df)[0]
-        self.assertAlmostEqual(r, 1., delta=0.000001)
+        self.assertAlmostEqual(r, 0., delta=0.000001)
         r = entropy(2, df)[0]
-        self.assertAlmostEqual(r, 1., delta=0.000001)
+        self.assertAlmostEqual(r, 0., delta=0.000001)
 
     def test_halfhalf(self):
         data = pd.DataFrame()
@@ -138,7 +138,7 @@ class TestEntropy(unittest.TestCase):
         df = df.withColumn("c2", replace_0_with_null(df["c2"]))
         df = df.withColumn("c3", replace_0dot_with_null(df["c3"]))
 
-        res = 6.311663380285999
+        res = 6.491853096329675
         r = entropy(0, df)[0]
         self.assertAlmostEqual(r, res, delta=0.000001)
         r = entropy(1, df)[0]
@@ -179,7 +179,7 @@ class TestEntropy(unittest.TestCase):
         df = df.withColumn("c2", replace_0_with_null(df["c2"]))
         df = df.withColumn("c3", replace_0dot_with_null(df["c3"]))
 
-        res = 2.3279058063111364
+        res = 2.025605199016944
         r = entropy(0, df)[0]
         self.assertAlmostEqual(r, res, delta=0.000001)
         r = entropy(1, df)[0]
