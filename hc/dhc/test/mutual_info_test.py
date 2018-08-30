@@ -1,12 +1,10 @@
 import random
 import unittest
-import logging
 
 import numpy as np
-from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
-from sklearn.metrics.cluster import adjusted_mutual_info_score
+from sklearn.metrics import mutual_info_score
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, count, sum, col
+from pyspark.sql.functions import udf, count, col
 from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
 import pandas as pd
 
@@ -28,15 +26,13 @@ class TestMutualInfo(unittest.TestCase):
         self.spark.sparkContext.setLogLevel("ERROR")
         self.spark.conf.set("spark.sql.crossJoin.enabled", "true")
 
-    def pmi(self, df, x, y):
-        z = mutual_info_score(df[x], df[y])
-        return z
-        # df['f_x'] = df.groupby(x)[x].transform('count')
-        # df['f_y'] = df.groupby(y)[y].transform('count')
-        # df['f_xy'] = df.groupby([x, y])[x].transform('count')
-        # df['pmi'] = np.log2(len(df.index) * df['f_xy'] / (df['f_x'] * df['f_y']))
-        # print(df)
-        # return df["pmi"].values[0]
+    def mi(self, df, x, y):
+        index = (df[x].isna()) | (df[y].isna())
+        index = ~index
+        if sum(index) > 0:
+            return mutual_info_score(df[x][index], df[y][index])
+        else:
+            return 0
 
     def test_empty(self):
         data = pd.DataFrame()
@@ -56,7 +52,9 @@ class TestMutualInfo(unittest.TestCase):
         df = df.withColumn("c1", replace_every_string_with_null(df["c1"]))
         df = df.withColumn("c2", replace_every_int_with_null(df["c2"]))
 
-        pmi = self.pmi(data, "c1", "c2")
+        data["c1"] = [None for i in range(100)]
+        data["c2"] = [np.NaN for i in range(100)]
+        pmi = self.mi(data, "c1", "c2")
         r = mutual_info(0, 1, df)[0]
         self.assertEqual(r, pmi)
         r = mutual_info(1, 0, df)[0]
@@ -68,7 +66,7 @@ class TestMutualInfo(unittest.TestCase):
         data["c2"] = [1 for _ in range(100)]
         df = self.spark.createDataFrame(data)
 
-        pmi = self.pmi(data, "c1", "c2")
+        pmi = self.mi(data, "c1", "c2")
         r = mutual_info(0, 1, df)[0]
         self.assertEqual(r, pmi)
         r = mutual_info(1, 0, df)[0]
@@ -86,7 +84,13 @@ class TestMutualInfo(unittest.TestCase):
         df = df.withColumn("c1", replace_empty_with_null(df["c1"]))
         df = df.withColumn("c2", replace_0_with_null(df["c2"]))
 
-        pmi = self.pmi(data, "c1", "c2")
+        c1 = [chr(1) for _ in range(50)]
+        c2 = [2 for _ in range(50)]
+        c1.extend([None for _ in range(50)])
+        c2.extend([np.NaN for _ in range(50)])
+        data["c1"] = c1
+        data["c2"] = c2
+        pmi = self.mi(data, "c1", "c2")
         r = mutual_info(0, 1, df)[0]
         self.assertAlmostEqual(r, pmi, delta=0.000001)
         r = mutual_info(1, 0, df)[0]
@@ -105,19 +109,19 @@ class TestMutualInfo(unittest.TestCase):
         data["c3"] = c3
         df = self.spark.createDataFrame(data)
 
-        pmi = self.pmi(data, "c1", "c2")
+        pmi = self.mi(data, "c1", "c2")
         r = mutual_info(0, 1, df)[0]
         self.assertAlmostEqual(r, pmi, delta=0.000001)
         r = mutual_info(1, 0, df)[0]
         self.assertAlmostEqual(r, pmi, delta=0.000001)
 
-        pmi = self.pmi(data, "c1", "c3")
+        pmi = self.mi(data, "c1", "c3")
         r = mutual_info(0, 2, df)[0]
         self.assertAlmostEqual(r, pmi, delta=0.000001)
         r = mutual_info(2, 0, df)[0]
         self.assertAlmostEqual(r, pmi, delta=0.000001)
 
-        pmi = self.pmi(data, "c2", "c3")
+        pmi = self.mi(data, "c2", "c3")
         r = mutual_info(1, 2, df)[0]
         self.assertAlmostEqual(r, pmi, delta=0.000001)
         r = mutual_info(2, 1, df)[0]
@@ -140,19 +144,19 @@ class TestMutualInfo(unittest.TestCase):
             data["c3"] = c3
             df = self.spark.createDataFrame(data)
 
-            pmi = self.pmi(data, "c1", "c2")
+            pmi = self.mi(data, "c1", "c2")
             r = mutual_info(0, 1, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(1, 0, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
 
-            pmi = self.pmi(data, "c1", "c3")
+            pmi = self.mi(data, "c1", "c3")
             r = mutual_info(0, 2, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(2, 0, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
 
-            pmi = self.pmi(data, "c2", "c3")
+            pmi = self.mi(data, "c2", "c3")
             r = mutual_info(1, 2, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(2, 1, df)[0]
@@ -178,19 +182,26 @@ class TestMutualInfo(unittest.TestCase):
             df = df.withColumn("c2", replace_0_with_null(df["c2"]))
             df = df.withColumn("c3", replace_0dot_with_null(df["c3"]))
 
-            pmi = self.pmi(data, "c1", "c2")
+            data = pd.DataFrame()
+            c1 = [(el if el != "" else None) for el in c1]
+            c2 = [(el if el != 0 else None) for el in c2]
+            c3 = [(el if el != 0. else None) for el in c3]
+            data["c1"] = c1
+            data["c2"] = c2
+            data["c3"] = c3
+            pmi = self.mi(data, "c1", "c2")
             r = mutual_info(0, 1, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(1, 0, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
 
-            pmi = self.pmi(data, "c1", "c3")
+            pmi = self.mi(data, "c1", "c3")
             r = mutual_info(0, 2, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(2, 0, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
 
-            pmi = self.pmi(data, "c2", "c3")
+            pmi = self.mi(data, "c2", "c3")
             r = mutual_info(1, 2, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(2, 1, df)[0]
@@ -216,19 +227,26 @@ class TestMutualInfo(unittest.TestCase):
             df = df.withColumn("c2", replace_0_with_null(df["c2"]))
             df = df.withColumn("c3", replace_0dot_with_null(df["c3"]))
 
-            pmi = self.pmi(data, "c1", "c2")
+            data = pd.DataFrame()
+            c1 = [(el if el != "" else None) for el in c1]
+            c2 = [(el if el != 0 else np.NaN) for el in c2]
+            c3 = [(el if el != 0. else np.NaN) for el in c3]
+            data["c1"] = c1
+            data["c2"] = c2
+            data["c3"] = c3
+            pmi = self.mi(data, "c1", "c2")
             r = mutual_info(0, 1, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(1, 0, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
 
-            pmi = self.pmi(data, "c1", "c3")
+            pmi = self.mi(data, "c1", "c3")
             r = mutual_info(0, 2, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(2, 0, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
 
-            pmi = self.pmi(data, "c2", "c3")
+            pmi = self.mi(data, "c2", "c3")
             r = mutual_info(1, 2, df)[0]
             self.assertAlmostEqual(r, pmi, delta=0.000001)
             r = mutual_info(2, 1, df)[0]
