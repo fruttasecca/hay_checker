@@ -21,7 +21,7 @@ def _completeness_todo(columns, df):
     """
     if columns is None:
         columns = df.columns
-    todo = [count(col(c)).alias(c) for c in columns]
+    todo = [count(c).alias(c) for c in columns]
     return todo
 
 
@@ -62,7 +62,7 @@ def _deduplication_todo(columns, df):
         todo = [countDistinct(*[col(c) for c in df.columns])]
     else:
         # multiple count distinct, one column each
-        todo = [countDistinct(col(c)).alias(c) for c in columns]
+        todo = [countDistinct(col(c)) for c in columns]
     return todo
 
 

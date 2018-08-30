@@ -119,10 +119,11 @@ class TestConstraint(unittest.TestCase):
 
     def test_halfnull_halfequal_notrespected2(self):
         data = pd.DataFrame()
-        c1 = [chr(1) for _ in range(40)]
-        c1.extend([chr(2) for _ in range(10)])
+        c1 = [chr(1) for _ in range(50)]
         c2 = [2 for _ in range(50)]
-        c3 = [2/0.6 for _ in range(50)]
+        c3 = [2/0.6 for _ in range(40)]
+        c3.extend([9 for _ in range(10)])
+
         c1.extend(["" for _ in range(50)])
         c2.extend([0 for _ in range(50)])
         c3.extend([0. for _ in range(50)])
@@ -135,17 +136,17 @@ class TestConstraint(unittest.TestCase):
         df = df.withColumn("c3", replace_0dot_with_null(df["c3"]))
 
         r = constraint([0, 1], [2], df=df)[0]
-        self.assertEqual(r, 50.0)
+        self.assertEqual(r, 0.0)
 
         condition1 = {"column": "c2", "operator": "lt", "value": 3}
         condition2 = {"column": "c2", "operator": "gt", "value": 0}
         conditions = [condition1, condition2]
         r = constraint([2, 1], [0], conditions, df)[0]
-        self.assertEqual(r, 0.0)
+        self.assertEqual(r, 100.0)
         r = constraint([2], [0], conditions, df)[0]
-        self.assertEqual(r, 0.0)
+        self.assertEqual(r, 100.0)
         r = constraint([1], [0], conditions, df)[0]
-        self.assertEqual(r, 0.0)
+        self.assertEqual(r, 100.0)
 
     def test_halfnull_halfequal_notrespected3(self):
         data = pd.DataFrame()
