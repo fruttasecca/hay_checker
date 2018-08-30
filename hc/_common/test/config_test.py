@@ -23,7 +23,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": True,
             "metrics": [
                 {
@@ -37,7 +37,7 @@ class TestConfig(unittest.TestCase):
             "table": "tablePath",
             "delimiter": "|",
             "header": True,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": True,
             "metrics": [
                 {
@@ -66,7 +66,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": True,
         }
 
@@ -107,7 +107,7 @@ class TestConfig(unittest.TestCase):
         j5 = {
             "table": "tablePath",
             "inferSchema": True,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "metrics": [
                 {
                     "metric": "completeness"
@@ -127,7 +127,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": True,
             "metrics": [
                 {
@@ -165,7 +165,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": True,
             "metrics": [
                 {
@@ -190,7 +190,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -228,7 +228,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -266,7 +266,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -332,7 +332,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -426,7 +426,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -499,7 +499,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -579,7 +579,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -687,7 +687,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -725,7 +725,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -766,7 +766,7 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": home+"/output.json",
+            "output": home + "/output.json",
             "verbose": False,
             "metrics": [
                 {
