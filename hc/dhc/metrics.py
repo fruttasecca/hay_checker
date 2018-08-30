@@ -636,6 +636,8 @@ def _entropy_todo(column, df):
 
     # count instances of each group
     todo = todo.agg(count("*").alias("_entropy_ci"))
+    # ignore nans/null for computing entropy
+    todo = todo.filter(~ col(column).isNull())
     todo = todo.select(sum(col("_entropy_ci") * log2("_entropy_ci")).alias("_sumcilogci"),
                        sum("_entropy_ci").alias("_total"))
     todo = todo.select(log2(col("_total")) - col("_sumcilogci") / col("_total"))
@@ -673,6 +675,8 @@ def _mutual_info_todo(when, then, df):
     """
     # group on the pair of columns, count occurrences
     pairs_table = df.groupBy([when, then]).agg(count("*").alias("_pairs_count"))
+    # ignore nulls
+    pairs_table = pairs_table.filter((~ col(when).isNull()) & (~ col(then).isNull()))
     pairs_table.cache()
 
     when_table = pairs_table.groupBy(col(when).alias("wt")).agg(sum("_pairs_count").alias("_when_count"))
