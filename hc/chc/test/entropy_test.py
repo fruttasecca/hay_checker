@@ -3,7 +3,7 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from ..metrics import entropy
+from hc.chc.metrics import entropy
 
 
 class TestEntropy(unittest.TestCase):

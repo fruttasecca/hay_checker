@@ -4,7 +4,7 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from ..metrics import deduplication
+from hc.chc.metrics import deduplication
 
 
 class TestDeduplication(unittest.TestCase):
