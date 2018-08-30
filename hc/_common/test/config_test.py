@@ -4,7 +4,7 @@ from ..config import Config
 
 """
 Required arguments (table, inferSchema, output, metrics) have no default value, optional arguments
-(delimiter, header, threads) have default values (',', True, 1).
+(delimiter, header, verbose) have default values (',', True, False).
 """
 
 
@@ -20,7 +20,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "threads": 16,
             "output": "/home/jacopo/output.json",
             "verbose": True,
             "metrics": [
@@ -35,7 +34,6 @@ class TestConfig(unittest.TestCase):
             "table": "tablePath",
             "delimiter": "|",
             "header": True,
-            "threads": 16,
             "output": "/home/jacopo/output.json",
             "verbose": True,
             "metrics": [
@@ -51,7 +49,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "threads": 16,
             "verbose": True,
             "metrics": [
                 {
@@ -66,7 +63,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "threads": 16,
             "output": "/home/jacopo/output.json",
             "verbose": True,
         }
@@ -119,7 +115,6 @@ class TestConfig(unittest.TestCase):
         c = Config(j5)
         self.assertEqual(c["delimiter"], ",")
         self.assertEqual(c["header"], True)
-        self.assertEqual(c["threads"], 1)
         self.assertEqual(c["verbose"], False)
 
     def test_optional_arguments2(self):
@@ -129,7 +124,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": True,
             "metrics": [
@@ -142,7 +136,6 @@ class TestConfig(unittest.TestCase):
         c = Config(j6)
         self.assertEqual(c["delimiter"], "#")
         self.assertEqual(c["header"], False)
-        self.assertEqual(c["threads"], 4)
         self.assertEqual(c["verbose"], True)
 
         with self.assertRaises(AssertionError) as cm:
@@ -156,11 +149,10 @@ class TestConfig(unittest.TestCase):
 
         with self.assertRaises(AssertionError) as cm:
             j6["header"] = False
-            j6["threads"] = False
+            j6["threads"] = "shouldnt be here"
             Config(j6)
 
         with self.assertRaises(AssertionError) as cm:
-            j6["threads"] = 4
             j6["verbose"] = 1
             Config(j6)
 
@@ -170,7 +162,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": True,
             "metrics": [
@@ -196,7 +187,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -235,7 +225,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -274,7 +263,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -341,7 +329,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -436,7 +423,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -510,7 +496,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -591,7 +576,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -700,7 +684,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -739,7 +722,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
@@ -781,7 +763,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": "/home/jacopo/output.json",
             "verbose": False,
             "metrics": [
