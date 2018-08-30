@@ -466,9 +466,9 @@ def _constraint_compute(when, then, conditions, df):
     """
     if conditions:
         conds = _and_conditions_as_columns(conditions, df)
-        groups = df[conds].fillna("_nan_constraint_filler")
+        groups = df[conds].fillna("_none_constraint_filler")
     else:
-        groups = df.fillna("_nan_constraint_filler")
+        groups = df.fillna("_none_constraint_filler")
 
     # if no rows make it after the filtering return
     if len(groups.index) == 0:
@@ -483,7 +483,7 @@ def _constraint_compute(when, then, conditions, df):
         """
 
         def _constraint_agg(s):
-            return s.replace(to_replace="_nan_constraint_filler", value=None).nunique()
+            return s.replace(to_replace="_none_constraint_filler", value=None).nunique()
 
         _constraint_agg.__name__ = "_constraint_agg_%s" % col
         aggs_lambdas[col] = [_constraint_agg]
@@ -597,49 +597,56 @@ def _remove_duplicate_groupby_aggs(aggs):
         aggs[col] = tmp
 
 
-def _grouby_aggregations(conditions):
+def _grouby_aggregations(conditions, columns):
     """
     Returns functions to compute for each column, given the conditions.
 
     :param conditions: List of dictionaries which represent "having" conditions, i.e.
     having min(col1) > 5.
+    :param columns: Columns on which the group by is made.
     :return: A dict mapping each column to named lambdas to compute on that column, which results
     will be later required to check on the conditions in the "conditions" parameter.
     """
     aggs = dict()
     for cond in conditions:
-        # do not include count(*) in aggregations
-        if cond["aggregator"] == "count" and cond["column"] == "*":
-            continue
-
-        column = cond["column"]
+        column = columns[0] if (cond["aggregator"] == "count" and cond["column"] == "*") else cond["column"]
         aggregator = cond["aggregator"] if "aggregator" in cond else None
         if column not in aggs:
             aggs[column] = []
 
         if "casted_to" in cond:
-            if aggregator == "count":
+            if cond["aggregator"] == "count" and cond["column"] == "*":
                 def _groupby_agg(s):
+                    return s.size
+
+                aggs[column].append(_groupby_agg)
+            elif aggregator == "count":
+                def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return pd.to_numeric(s, errors="coerce").count()
 
                 aggs[column].append(_groupby_agg)
             elif aggregator == "min":
                 def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return pd.to_numeric(s, errors="coerce").min()
 
                 aggs[column].append(_groupby_agg)
             elif aggregator == "max":
                 def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return pd.to_numeric(s, errors="coerce").max()
 
                 aggs[column].append(_groupby_agg)
             elif aggregator == "avg":
                 def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return pd.to_numeric(s, errors="coerce").mean()
 
                 aggs[column].append(_groupby_agg)
             elif aggregator == "sum":
                 def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return pd.to_numeric(s, errors="coerce").sum()
 
                 aggs[column].append(_groupby_agg)
@@ -647,44 +654,58 @@ def _grouby_aggregations(conditions):
                 print("Aggregator %s not recognized" % aggregator)
                 exit()
         else:
-            if aggregator == "count":
+            if cond["aggregator"] == "count" and cond["column"] == "*":
                 def _groupby_agg(s):
+                    return s.size
+
+                aggs[column].append(_groupby_agg)
+            elif aggregator == "count":
+                def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return s.count()
 
                 aggs[column].append(_groupby_agg)
             elif aggregator == "min":
                 def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return s.min()
 
                 aggs[column].append(_groupby_agg)
             elif aggregator == "max":
                 def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return s.max()
 
                 aggs[column].append(_groupby_agg)
             elif aggregator == "avg":
                 def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return s.mean()
 
                 aggs[column].append(_groupby_agg)
             elif aggregator == "sum":
                 def _groupby_agg(s):
+                    s.replace(to_replace="_none_grouprule_filler", value="None", inplace=True)
                     return s.sum()
 
                 aggs[column].append(_groupby_agg)
             else:
                 print("Aggregator %s not recognized" % aggregator)
                 exit()
+        if cond["aggregator"] == "count" and cond["column"] == "*":
+            aggregator = "size"
+
         aggs[column][-1].__name__ = ("_groupby_agg_%s_%s" % (column, aggregator))
     _remove_duplicate_groupby_aggs(aggs)
     return aggs
 
 
-def _grouprule_aggs_filter(having):
+def _grouprule_aggs_filter(having, columns):
     """
     Given (having) conditions, return what to filter on as a string, to be used
     after groupbys as grouped.query(string returned by this function).
     :param having:
+    :param columns: Columns on which the group by is made.
     :return: String to be used on a df.query to filter based on the "having" conditions.
     """
     # add first condition
@@ -696,7 +717,8 @@ def _grouprule_aggs_filter(having):
     first_operator = cond["operator"]
 
     if cond["aggregator"] == "count" and cond["column"] == "*":
-        result = "count %s %s" % (operator_map[first_operator], cond["value"])
+        result = "_groupby_agg_%s_%s %s %s" % (
+            columns[0], "size", operator_map[first_operator], cond["value"])
     else:
         result = "_groupby_agg_%s_%s %s %s" % (
             cond["column"], cond["aggregator"], operator_map[first_operator], cond["value"])
@@ -705,7 +727,8 @@ def _grouprule_aggs_filter(having):
     for cond in having[1:]:
         operator = cond["operator"]
         if cond["aggregator"] == "count" and cond["column"] == "*":
-            result = result + " and count %s %s" % (operator_map[operator], cond["value"])
+            result = result + " and _groupby_agg_%s_%s %s %s" % (
+                columns[0], "size", operator_map[operator], cond["value"])
         else:
             result = result + " and _groupby_agg_%s_%s %s %s" % (
                 cond["column"], cond["aggregator"], operator_map[operator], cond["value"])
@@ -722,23 +745,26 @@ def _grouprule_compute(columns, conditions, having, df):
     :return: Result of the metric.
     """
     # filter if needed
+    """
+    Replacing _nan_constraint_filler back with None is needed to have the same semantics
+    between sql/pyspark and pandas.
+    """
     if conditions:
         conds = _and_conditions_as_columns(conditions, df)
-        groups = df[conds]
+        groups = df[conds].fillna("_none_grouprule_filler")
+    else:
+        groups = df.fillna("_none_grouprule_filler")
+
+    # if no rows make it after the filtering return
+    if len(groups.index) == 0:
+        return 1
 
     groups = groups.groupby(columns)
-    tmp = groups.agg(_grouby_aggregations(having))
+    tmp = groups.agg(_grouby_aggregations(having, columns))
     tmp.columns = tmp.columns.droplevel(0)
-    has_count_all = any([(h["column"] == "*" and h["aggregator"] == "count") for h in having])
-    if has_count_all:
-        count = groups.size().to_frame(name='count')
-        groups = count.join(tmp)
-        groups.reset_index()
-    else:
-        groups = tmp
-    print(groups)
+    groups = tmp
     total_groups = len(groups.index)
-    passing_groups = len(groups.query(_grouprule_aggs_filter(having)).index)
+    passing_groups = len(groups.query(_grouprule_aggs_filter(having, columns)).index)
     return passing_groups / total_groups
 
 
