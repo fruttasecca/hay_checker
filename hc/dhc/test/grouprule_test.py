@@ -7,7 +7,7 @@ from pyspark.sql.functions import udf
 from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
 import pandas as pd
 
-from ..metrics import grouprule
+from hc.dhc.metrics import grouprule
 
 replace_empty_with_null = udf(lambda x: None if x == "" else x, StringType())
 replace_0_with_null = udf(lambda x: None if x == 0 else x, IntegerType())

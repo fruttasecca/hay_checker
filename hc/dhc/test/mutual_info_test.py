@@ -8,7 +8,7 @@ from pyspark.sql.functions import udf, count, col
 from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
 import pandas as pd
 
-from ..metrics import mutual_info
+from hc.dhc.metrics import mutual_info
 
 replace_empty_with_null = udf(lambda x: None if x == "" else x, StringType())
 replace_0_with_null = udf(lambda x: None if x == 0 else x, IntegerType())
