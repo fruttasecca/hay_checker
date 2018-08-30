@@ -636,6 +636,8 @@ def _entropy_todo(column, df):
 
     # count instances of each group
     todo = todo.agg(count("*").alias("_entropy_ci"))
+    # ignore nans/null for computing entropy
+    todo = todo.filter(~ col(column).isNull())
     todo = todo.select(sum(col("_entropy_ci") * log2("_entropy_ci")).alias("_sumcilogci"),
                        sum("_entropy_ci").alias("_total"))
     todo = todo.select(log2(col("_total")) - col("_sumcilogci") / col("_total"))
