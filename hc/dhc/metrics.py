@@ -21,7 +21,7 @@ def _completeness_todo(columns, df):
     """
     if columns is None:
         columns = df.columns
-    todo = [count(col(c)).alias(c) for c in columns]
+    todo = [count(when(~ (isnan(col(c)) | col(c).isNull()), c)).alias(c) for c in columns]
     return todo
 
 
