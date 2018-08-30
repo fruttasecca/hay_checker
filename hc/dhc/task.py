@@ -1,6 +1,6 @@
 """
 Class extending the _Task class from the common
-scripts. It contains metrics to run that can be run
+scripts. It contains metrics that can be run
 on different data.
 """
 
