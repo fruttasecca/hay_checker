@@ -460,15 +460,30 @@ def _constraint_compute(when, then, conditions, df):
     """
 
     # filter if needed
+    """
+    Using _nan_constraint_filler is needed to make it so that pandas will groupby 
+    also considering None values.
+    """
     if conditions:
         conds = _and_conditions_as_columns(conditions, df)
-        groups = df[conds]
+        groups = df[conds].fillna("_nan_constraint_filler")
+    else:
+        groups = df.fillna("_nan_constraint_filler")
+
+    # if no rows make it after the filtering return
+    if len(groups.index) == 0:
+        return 1
 
     # create named lambdas for each 'then' column
     aggs_lambdas = dict()
     for col in then:
+        """
+        Replacing _nan_constraint_filler back with None is needed to have the same semantics
+        between sql/pyspark and pandas.
+        """
+
         def _constraint_agg(s):
-            return s.nunique()
+            return s.replace(to_replace="_nan_constraint_filler", value=None).nunique()
 
         _constraint_agg.__name__ = "_constraint_agg_%s" % col
         aggs_lambdas[col] = [_constraint_agg]
