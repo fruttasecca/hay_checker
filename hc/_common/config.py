@@ -348,11 +348,11 @@ class Config(object):
         Check the arguments in the self._config dict, stop running through an assertion error if an incorrectness
         is met.
         Required arguments (table, inferSchema, output, metrics) have no default value, optional arguments
-        (delimiter, header, threads) have default values (',', True, 1).
+        (delimiter, header, verbose) have default values (',', True, False).
         """
 
         # check for unknown _config
-        allowed_args = ["table", "inferSchema", "output", "metrics", "delimiter", "header", "threads", "verbose"]
+        allowed_args = ["table", "inferSchema", "output", "metrics", "delimiter", "header", "verbose"]
         for key in self._config:
             assert key in allowed_args, "Argument '%s' is unknown." % key
 
@@ -384,11 +384,6 @@ class Config(object):
             assert type(self._config["header"]) is bool
         else:
             self._config["header"] = True
-
-        if "threads" in self._config:
-            assert type(self._config["threads"]) is int
-        else:
-            self._config["threads"] = 1
 
         if "verbose" in self._config:
             assert type(self._config["verbose"]) is bool
