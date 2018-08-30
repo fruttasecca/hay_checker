@@ -3,7 +3,7 @@ import logging
 
 import pandas as pd
 
-from .._runtime_checks import completeness_run_check, deduplication_run_check, timeliness_run_check, \
+from hc.chc._runtime_checks import completeness_run_check, deduplication_run_check, timeliness_run_check, \
     freshness_run_check, rule_run_check, grouprule_run_check, constraint_run_check, deduplication_approximated_run_check
 
 

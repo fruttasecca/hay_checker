@@ -3,7 +3,7 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from ..metrics import rule
+from hc.chc.metrics import rule
 
 
 class TestRule(unittest.TestCase):

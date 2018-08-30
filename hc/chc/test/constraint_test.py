@@ -3,7 +3,7 @@ import unittest
 import pandas as pd
 import numpy as np
 
-from ..metrics import constraint
+from hc.chc.metrics import constraint
 
 
 class TestConstraint(unittest.TestCase):

@@ -7,7 +7,7 @@ from sklearn.metrics.cluster import adjusted_mutual_info_score
 import pandas as pd
 import numpy as np
 
-from ..metrics import mutual_info
+from hc.chc.metrics import mutual_info
 
 
 class TestMutualInfo(unittest.TestCase):

@@ -2,8 +2,8 @@ import unittest
 
 import pandas as pd
 
-from ..task import Task
-from ..metrics import completeness, deduplication, timeliness, rule, grouprule
+from hc.chc.task import Task
+from hc.chc.metrics import completeness, deduplication, timeliness, rule, grouprule
 
 
 class TestTask(unittest.TestCase):

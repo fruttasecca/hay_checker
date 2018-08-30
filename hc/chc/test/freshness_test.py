@@ -5,7 +5,7 @@ import time as timelib
 import pandas as pd
 import numpy as np
 
-from ..metrics import freshness
+from hc.chc.metrics import freshness
 
 
 def _convert_format(format):
