@@ -23,7 +23,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "threads": 16,
             "output": home+"/output.json",
             "verbose": True,
             "metrics": [
@@ -38,7 +37,6 @@ class TestConfig(unittest.TestCase):
             "table": "tablePath",
             "delimiter": "|",
             "header": True,
-            "threads": 16,
             "output": home+"/output.json",
             "verbose": True,
             "metrics": [
@@ -68,7 +66,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "threads": 16,
             "output": home+"/output.json",
             "verbose": True,
         }
@@ -130,7 +127,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": True,
             "metrics": [
@@ -169,7 +165,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": True,
             "metrics": [
@@ -195,7 +190,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -234,7 +228,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -273,7 +266,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -340,7 +332,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -435,7 +426,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -509,7 +499,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -590,7 +579,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -699,7 +687,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -738,7 +725,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
@@ -780,7 +766,6 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "threads": 4,
             "output": home+"/output.json",
             "verbose": False,
             "metrics": [
