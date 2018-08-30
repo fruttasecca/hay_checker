@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 import unittest
 from ..config import Config
+from os.path import expanduser
+
+home = expanduser("~")
 
 """
 Required arguments (table, inferSchema, output, metrics) have no default value, optional arguments
@@ -20,7 +23,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "output": "/home/jacopo/output.json",
+            "threads": 16,
+            "output": home+"/output.json",
             "verbose": True,
             "metrics": [
                 {
@@ -34,7 +38,8 @@ class TestConfig(unittest.TestCase):
             "table": "tablePath",
             "delimiter": "|",
             "header": True,
-            "output": "/home/jacopo/output.json",
+            "threads": 16,
+            "output": home+"/output.json",
             "verbose": True,
             "metrics": [
                 {
@@ -63,7 +68,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "|",
             "header": True,
-            "output": "/home/jacopo/output.json",
+            "threads": 16,
+            "output": home+"/output.json",
             "verbose": True,
         }
 
@@ -104,7 +110,7 @@ class TestConfig(unittest.TestCase):
         j5 = {
             "table": "tablePath",
             "inferSchema": True,
-            "output": "/home/jacopo/output.json",
+            "output": home+"/output.json",
             "metrics": [
                 {
                     "metric": "completeness"
@@ -124,7 +130,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": True,
             "metrics": [
                 {
@@ -162,7 +169,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": True,
             "metrics": [
                 {
@@ -187,7 +195,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -225,7 +234,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -263,7 +273,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -329,7 +340,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -423,7 +435,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -496,7 +509,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -576,7 +590,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -684,7 +699,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -722,7 +738,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {
@@ -763,7 +780,8 @@ class TestConfig(unittest.TestCase):
             "inferSchema": True,
             "delimiter": "#",
             "header": False,
-            "output": "/home/jacopo/output.json",
+            "threads": 4,
+            "output": home+"/output.json",
             "verbose": False,
             "metrics": [
                 {

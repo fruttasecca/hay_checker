@@ -1,0 +1,20 @@
+{
+  "table": "/data.csv",
+  "inferSchema": true,
+  "delimiter": ",",
+  "header": true,
+  "output": "/tmp/output.json",
+  "verbose": true,
+  "metrics": [
+    {
+      "metric": "completeness"
+    },
+    {
+      "metric": "completeness",
+      "columns": [
+        0,
+        1
+      ]
+    }
+  ]
+}
