@@ -1,11 +1,11 @@
-import datetime
-import unittest
+haychecker datetime
 import time as timelib
+import unittest
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from hc.chc.metrics import freshness
+from haychecker.chc.metrics import freshness
 
 
 def _convert_format(format):

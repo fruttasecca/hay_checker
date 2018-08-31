@@ -1,13 +1,11 @@
 import random
 import unittest
-import logging
 
-from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
-from sklearn.metrics.cluster import adjusted_mutual_info_score
-import pandas as pd
 import numpy as np
+import pandas as pd
+from sklearn.metrics import mutual_info_score
 
-from hc.chc.metrics import mutual_info
+from haychecker.chc.metrics import mutual_info
 
 
 class TestMutualInfo(unittest.TestCase):

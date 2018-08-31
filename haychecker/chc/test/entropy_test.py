@@ -1,9 +1,9 @@
 import unittest
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from hc.chc.metrics import entropy
+from haychecker.chc.metrics import entropy
 
 
 class TestEntropy(unittest.TestCase):
