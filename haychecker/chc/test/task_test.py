@@ -2,8 +2,8 @@ import unittest
 
 import pandas as pd
 
-from hc.chc.task import Task
-from hc.chc.metrics import completeness, deduplication, timeliness, rule, grouprule
+from haychecker.chc.metrics import completeness, deduplication, timeliness, rule, grouprule
+from haychecker.chc.task import Task
 
 
 class TestTask(unittest.TestCase):

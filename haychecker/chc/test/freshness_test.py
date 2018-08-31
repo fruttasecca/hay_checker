@@ -1,11 +1,11 @@
 import datetime
-import unittest
 import time as timelib
+import unittest
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from hc.chc.metrics import freshness
+from haychecker.chc.metrics import freshness
 
 
 def _convert_format(format):
@@ -61,7 +61,6 @@ class TestFreshness(unittest.TestCase):
         r1, r2 = freshness(["c1", "c2"], timeFormat="dd:MM:yyyy", df=df)
         self.assertEqual(r1, "nan seconds")
         self.assertEqual(r2, "nan seconds")
-        print(r1, r2)
 
     def test_dateformat(self):
         format = "YYYY-mm-dd HH:MM:SS"

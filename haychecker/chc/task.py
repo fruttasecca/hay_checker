@@ -7,9 +7,10 @@ on different data.
 import copy
 from operator import itemgetter
 
-from .._common._task import _Task
-from . import metrics as m
-from . import _runtime_checks as util
+from haychecker.chc import _runtime_checks as util
+from haychecker.chc import metrics as m
+
+from haychecker._common._task import _Task
 
 
 class Task(_Task):

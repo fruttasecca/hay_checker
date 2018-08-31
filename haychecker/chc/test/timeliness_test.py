@@ -1,10 +1,10 @@
 import random
 import unittest
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from hc.chc.metrics import timeliness
+from haychecker.chc.metrics import timeliness
 
 
 def _convert_format(format):

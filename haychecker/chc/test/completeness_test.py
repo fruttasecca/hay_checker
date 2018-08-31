@@ -1,10 +1,10 @@
 import random
 import unittest
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from hc.chc.metrics import completeness
+from haychecker.chc.metrics import completeness
 
 
 class TestCompleteness(unittest.TestCase):

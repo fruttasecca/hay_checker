@@ -1,11 +1,10 @@
 """
 Module containing metrics for the centralized version of hay_checker.
 """
-import pandas as pd
 import numpy as np
+import pandas as pd
+from haychecker.chc import task
 from sklearn.metrics import mutual_info_score
-
-from . import task
 
 
 def _completeness_todo(columns, df):
