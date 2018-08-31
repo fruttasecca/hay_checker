@@ -1,12 +1,10 @@
 #!/usr/bin/python3
 from pyspark.sql import SparkSession
 
-#TODO: change import file
-from hc.dhc.task import Task
-from hc.dhc.metrics import *
+from haychecker.dhc.task import Task
+from haychecker.dhc.metrics import *
 
-spark = SparkSession.builder.master("local[2]").appName("task_example").getOrCreate()
-spark.sparkContext.setLogLevel("ERROR")
+spark = SparkSession.builder.appName("task_example").getOrCreate()
 
 df = spark.read.format("csv").option("header", "true").load("examples/resources/employees.csv")
 

@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 from pyspark.sql import SparkSession
 
-#TODO: change import file
-from hc.dhc.metrics import completeness
+from haychecker.dhc.metrics import completeness
 
-spark = SparkSession.builder.master("local[2]").appName("completeness_example").getOrCreate()
-spark.sparkContext.setLogLevel("ERROR")
+spark = SparkSession.builder.appName("completeness_example").getOrCreate()
 
 df = spark.read.format("csv").option("header", "true").load("examples/resources/employees.csv")
 

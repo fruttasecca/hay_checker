@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 from pyspark.sql import SparkSession
 
-#TODO: change import file
-from hc.dhc.metrics import timeliness
+from haychecker.dhc.metrics import timeliness
 
-spark = SparkSession.builder.master("local[2]").appName("timeliness_example").getOrCreate()
-spark.sparkContext.setLogLevel("ERROR")
+spark = SparkSession.builder.appName("timeliness_example").getOrCreate()
 
 df = spark.read.format("csv").option("header", "true").load("examples/resources/employees.csv")
 
