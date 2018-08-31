@@ -4,9 +4,9 @@ which describes all parameters for the script, from specifying the input file
 to specific data conditions to be checked for quality.
 """
 
+import copy  # to deepcopy returned items from __get_item__
 import json
 import os  # to check on paths
-import copy  # to deepcopy returned items from __get_item__
 
 
 class Config(object):
