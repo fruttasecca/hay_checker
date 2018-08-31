@@ -1,0 +1,8 @@
+lastName,firstName,title,birthDate,hireDate,city,region,reportsTo,salary
+Davolio,Nancy,Sales Representative,1948/12/08,1992/05/01,Seattle,WA,2,2000
+Fuller,Andrew,"Vice President, Sales",1952/02/19,1992/08/14,Tacoma,WA,,3000
+Leverling,Janet,Sales Representative,1963/08/30,1992/04/01,Kirkland,WA,2,2000
+Peacock,Margaret,Sales Representative,1937/09/19,1993/05/03,Redmond,WA,2,2000
+Buchanan,Steven,Sales Manager,1955/03/04,1993/10/17,London,,2,2500
+Suyama,Michael,Sales Representative,1963/07/02,1993/10/17,London,,5,2000
+King,Robert,Sales Representative,1960/05/29,1994/01/02,London,,5,2000
