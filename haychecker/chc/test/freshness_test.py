@@ -1,4 +1,4 @@
-haychecker datetime
+import datetime
 import time as timelib
 import unittest
 
@@ -61,7 +61,6 @@ class TestFreshness(unittest.TestCase):
         r1, r2 = freshness(["c1", "c2"], timeFormat="dd:MM:yyyy", df=df)
         self.assertEqual(r1, "nan seconds")
         self.assertEqual(r2, "nan seconds")
-        print(r1, r2)
 
     def test_dateformat(self):
         format = "YYYY-mm-dd HH:MM:SS"
