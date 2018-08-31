@@ -31,6 +31,38 @@ pandas
 Simple examples of metrics usage. More examples and source code can be 
 found in [examples](./examples) folder
 
+**Centralized version**
+
+Import a dataframe
+```python
+import pandas as pd
+
+df = pd.read_csv("examples/resources/employees.csv")
+
+pd.set_option('max_columns', 10)
+print(df)
+```
+Output
+```text
+    lastName firstName                  title   birthDate    hireDate  \
+0    Davolio     Nancy   Sales Representative  1948/12/08  1992/05/01   
+1     Fuller    Andrew  Vice President, Sales  1952/02/19  1992/08/14   
+2  Leverling     Janet   Sales Representative  1963/08/30  1992/04/01   
+3    Peacock  Margaret   Sales Representative  1937/09/19  1993/05/03   
+4   Buchanan    Steven          Sales Manager  1955/03/04  1993/10/17   
+5     Suyama   Michael   Sales Representative  1963/07/02  1993/10/17   
+6       King    Robert   Sales Representative  1960/05/29  1994/01/02   
+
+       city region  reportsTo  salary  
+0   Seattle     WA        2.0    2000  
+1    Tacoma     WA        NaN    3000  
+2  Kirkland     WA        2.0    2000  
+3   Redmond     WA        2.0    2000  
+4    London    NaN        2.0    2500  
+5    London    NaN        5.0    2000  
+6    London    NaN        5.0    2000 
+```
+
 **Distributed version**
 
 Create a spark session
