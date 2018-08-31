@@ -6,9 +6,9 @@ import json
 from pyspark.sql import SparkSession
 import __main__
 
-from hc._common.config import Config
-from hc.dhc.task import Task as dTask
-from hc.chc.task import Task as cTask
+from haychecker._common.config import Config
+from haychecker.dhc.task import Task as dTask
+from haychecker.chc.task import Task as cTask
 
 
 def import_data(spark, path, has_header, delimiter, infer_schema):
