@@ -1,14 +1,12 @@
-import random
 import datetime
 import unittest
-import logging
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, to_timestamp, to_date, current_date, datediff, current_timestamp, lit
-from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
 import pandas as pd
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import udf, to_timestamp, to_date, current_timestamp, lit
+from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
 
-from hc.dhc.metrics import freshness
+from haychecker.dhc.metrics import freshness
 
 replace_empty_with_null = udf(lambda x: None if x == "" else x, StringType())
 replace_0_with_null = udf(lambda x: None if x == 0 else x, IntegerType())

@@ -4,7 +4,6 @@ the metric to compute and column types, etc, these
 checks are considered run time checks (having a df to check against), and
 to be run after running the parameters check.
 """
-import copy
 
 
 def completeness_run_check(columns, df):

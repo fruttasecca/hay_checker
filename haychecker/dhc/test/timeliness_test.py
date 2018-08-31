@@ -1,13 +1,12 @@
 import random
 import unittest
-import logging
 
+import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf, to_timestamp, to_date
 from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
-import pandas as pd
 
-from hc.dhc.metrics import timeliness
+from haychecker.dhc.metrics import timeliness
 
 replace_empty_with_null = udf(lambda x: None if x == "" else x, StringType())
 replace_0_with_null = udf(lambda x: None if x == 0 else x, IntegerType())

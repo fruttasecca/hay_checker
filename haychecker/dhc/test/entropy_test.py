@@ -1,13 +1,11 @@
-import random
 import unittest
-import logging
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, count
-from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
 import pandas as pd
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
 
-from hc.dhc.metrics import entropy
+from haychecker.dhc.metrics import entropy
 
 replace_empty_with_null = udf(lambda x: None if x == "" else x, StringType())
 replace_0_with_null = udf(lambda x: None if x == 0 else x, IntegerType())

@@ -1,13 +1,11 @@
-import random
 import unittest
-import logging
 
+import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf
 from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
-import pandas as pd
 
-from hc.dhc.metrics import grouprule
+from haychecker.dhc.metrics import grouprule
 
 replace_empty_with_null = udf(lambda x: None if x == "" else x, StringType())
 replace_0_with_null = udf(lambda x: None if x == 0 else x, IntegerType())
@@ -128,7 +126,7 @@ class TestGroupRule(unittest.TestCase):
         condition2 = {"column": "c3", "operator": "gt", "value": 1.0}
         conditions = [condition1, condition2]
         having1 = {"column": "*", "operator": "gt", "value": 1, "aggregator": "count"}
-        having2 = {"column": "c4", "operator": "eq", "value": 50/3, "aggregator": "avg"}
+        having2 = {"column": "c4", "operator": "eq", "value": 50 / 3, "aggregator": "avg"}
         havings = [having1, having2]
         r = grouprule([0, "c2"], havings, conditions, df)[0]
         self.assertEqual(r, 25.)
@@ -171,4 +169,4 @@ class TestGroupRule(unittest.TestCase):
         having1 = {"column": "c1", "operator": "gt", "value": 1.0, "aggregator": "count"}
         havings = [having1]
         r = grouprule([0, 3], havings, conditions, df)[0]
-        self.assertEqual(r, (1/3) * 100)
+        self.assertEqual(r, (1 / 3) * 100)

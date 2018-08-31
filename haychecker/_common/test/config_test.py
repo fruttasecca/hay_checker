@@ -1,8 +1,10 @@
 #!/usr/bin/python3
 import unittest
+from os.path import expanduser
 
 from haychecker._common.config import Config
 
+home = expanduser("~")
 """
 Required arguments (table, inferSchema, output, metrics) have no default value, optional arguments
 (delimiter, header, verbose) have default values (',', True, False).

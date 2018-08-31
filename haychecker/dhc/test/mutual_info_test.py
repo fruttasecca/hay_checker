@@ -2,13 +2,13 @@ import random
 import unittest
 
 import numpy as np
-from sklearn.metrics import mutual_info_score
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import udf, count, col
-from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
 import pandas as pd
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
+from sklearn.metrics import mutual_info_score
 
-from hc.dhc.metrics import mutual_info
+from haychecker.dhc.metrics import mutual_info
 
 replace_empty_with_null = udf(lambda x: None if x == "" else x, StringType())
 replace_0_with_null = udf(lambda x: None if x == 0 else x, IntegerType())

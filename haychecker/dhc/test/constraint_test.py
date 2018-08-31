@@ -1,13 +1,11 @@
-import random
 import unittest
-import logging
 
+import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf
 from pyspark.sql.types import StringType, StructField, StructType, IntegerType, FloatType
-import pandas as pd
 
-from hc.dhc.metrics import constraint
+from haychecker.dhc.metrics import constraint
 
 replace_empty_with_null = udf(lambda x: None if x == "" else x, StringType())
 replace_0_with_null = udf(lambda x: None if x == 0 else x, IntegerType())
@@ -68,7 +66,7 @@ class TestConstraint(unittest.TestCase):
         data = pd.DataFrame()
         c1 = [chr(1) for _ in range(50)]
         c2 = [2 for _ in range(50)]
-        c3 = [2/0.6 for _ in range(50)]
+        c3 = [2 / 0.6 for _ in range(50)]
         c1.extend(["" for _ in range(50)])
         c2.extend([0 for _ in range(50)])
         c3.extend([0. for _ in range(50)])
@@ -94,7 +92,7 @@ class TestConstraint(unittest.TestCase):
         data = pd.DataFrame()
         c1 = [chr(1) for _ in range(50)]
         c2 = [2 for _ in range(50)]
-        c3 = [2/0.6 for _ in range(50)]
+        c3 = [2 / 0.6 for _ in range(50)]
         c1.extend(["" for _ in range(50)])
         c2.extend([0 for _ in range(50)])
         c3.extend([0. for _ in range(40)])
@@ -121,7 +119,7 @@ class TestConstraint(unittest.TestCase):
         data = pd.DataFrame()
         c1 = [chr(1) for _ in range(50)]
         c2 = [2 for _ in range(50)]
-        c3 = [2/0.6 for _ in range(40)]
+        c3 = [2 / 0.6 for _ in range(40)]
         c3.extend([9 for _ in range(10)])
 
         c1.extend(["" for _ in range(50)])
@@ -162,7 +160,7 @@ class TestConstraint(unittest.TestCase):
         df = df.withColumn("c3", replace_0dot_with_null(df["c3"]))
 
         r = constraint([0, 1], [2], df=df)[0]
-        self.assertEqual(r, (5/7.) * 100)
+        self.assertEqual(r, (5 / 7.) * 100)
 
         condition1 = {"column": "c2", "operator": "lt", "value": 3}
         conditions = [condition1]
@@ -172,7 +170,7 @@ class TestConstraint(unittest.TestCase):
         condition1 = {"column": "c2", "operator": "eq", "value": 3}
         conditions = [condition1]
         r = constraint([0, 1], [2], conditions, df)[0]
-        self.assertEqual(r, (1/3.) * 100)
+        self.assertEqual(r, (1 / 3.) * 100)
 
         condition1 = {"column": "c2", "operator": "eq", "value": 3}
         condition2 = {"column": "c1", "operator": "eq", "value": "3"}
@@ -188,4 +186,4 @@ class TestConstraint(unittest.TestCase):
         self.assertEqual(r, 100.)
 
         r = constraint([0], [1, 2], df=df)[0]
-        self.assertEqual(r, (2/7.) * 100)
+        self.assertEqual(r, (2 / 7.) * 100)

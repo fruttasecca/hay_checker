@@ -2,13 +2,11 @@
 Module containing metrics for the distributed version of hay_checker.
 """
 
-from datetime import datetime
-
 import pyspark
 from pyspark.sql.functions import isnan, when, count, col, sum, countDistinct, avg, to_date, lit, \
-    abs, datediff, unix_timestamp, to_timestamp, current_timestamp, current_date, approx_count_distinct, log2, log
+    abs, datediff, to_timestamp, current_timestamp, current_date, approx_count_distinct, log2, log
 
-from . import task
+from haychecker.dhc import task
 
 
 def _completeness_todo(columns, df):
