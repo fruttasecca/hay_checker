@@ -13,7 +13,7 @@ df.show()
 # create an empty Task
 task = Task()
 
-# constraint returns a Task instance without running it untill dataframe is passed
+# metric returns a Task instance without running it untill dataframe is passed
 task1 = completeness(["region", "reportsTo"])
 task2 = completeness(["city"])
 
