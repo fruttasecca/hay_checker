@@ -62,6 +62,10 @@ Output
 
 ```
 
+In the following examples all imports are of the form *from haychecker.**dhc**.metrics import \<metric\>*
+For the centralized version all metric calls are identical, while import has the form 
+*from haychecker.**chc**.metrics import \<metric\>*
+
 ### Completeness
 Measures how complete is the dataset by counting which entities are not 
 missing in a column or in the whole table.
@@ -163,6 +167,10 @@ Reflects how up-to-date the dataset is with respect to the given date/time.
 
 ![alt text](figures/timeliness/column.gif)
 
+!
+In the centralized version of the library the [strftime](http://strftime.org/) directive 
+is used as date/time format argument, while in the distributed version a [simple date format](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html) is enough (e.g. "yyyy/MM/dd")
+
 ***method* metrics.timeliness(columns, value, df=None, dateFormat=None, timeFormat=None)**
 
 Arguments
@@ -194,6 +202,11 @@ Measures how fresh is the dataset by taking the average distance of
 - column
 
 ![alt text](figures/freshness/column.gif)
+
+!
+In the centralized version of the library the [strftime](http://strftime.org/) directive 
+is used as date/time format argument, while in the distributed version a [simple date format](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html) is enough (e.g. "yyyy/MM/dd")
+
     
 ***method* metrics.freshness(columns, df=None, dateFormat=None, timeFormat=None)**
 
