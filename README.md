@@ -272,6 +272,7 @@ Shannon entropy of a column.
 
 ![alt text](figures/entropy/column.gif)
 
+Values null and NaN are ignored by this metric implementation
 
 ***method* metrics.entropy(column, df=None)**
 
@@ -299,6 +300,8 @@ Entropy firstName: 2.807354922057604
 - two columns X and Y
 
 ![alt text](figures/mutual_info/two_columns.gif)
+
+Values null and NaN are ignored by this metric implementation
 
 ***method* metrics.mutual_info(when, then, df=None)**
 
