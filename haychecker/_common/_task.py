@@ -6,7 +6,7 @@ to optimize.
 """
 import copy
 
-from .config import Config
+from haychecker._common.config import Config
 
 
 class _Task(object):
