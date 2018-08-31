@@ -272,8 +272,6 @@ Shannon entropy of a column.
 
 ![alt text](figures/entropy/column.gif)
 
-Values null and NaN are ignored by this metric implementation
-
 ***method* metrics.entropy(column, df=None)**
 
 Arguments
@@ -282,6 +280,8 @@ Arguments
 |--------|-------------------------------------------------------------------------------------------------------------------------------|
 | column | Columns on which to run the metric                                                                                            |
 | df     | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
+
+Values null and NaN are ignored by this metric implementation
 
 Example
 
@@ -301,8 +301,6 @@ Entropy firstName: 2.807354922057604
 
 ![alt text](figures/mutual_info/two_columns.gif)
 
-Values null and NaN are ignored by this metric implementation
-
 ***method* metrics.mutual_info(when, then, df=None)**
 
 Arguments
@@ -312,6 +310,8 @@ Arguments
 | when | First column on which to compute MI                                                                                           |
 | then | Second column on which to compute MI                                                                                          |
 | df   | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
+
+Values null and NaN are ignored by this metric implementation
 
 Example
 
@@ -347,6 +347,8 @@ Arguments
 | conditions | Conditions on which to filter data before applying the metric                                                                 |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
 
+When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted. 
+
 Example
 
 ```python
@@ -375,6 +377,8 @@ Arguments
 |------------|--------------------------------------------------------------------------------------------------------------------------------|
 | conditions | Conditions on which to run the metric                                                                                          |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later |
+
+When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted.
 
 Example
 
@@ -408,6 +412,8 @@ Arguments
 | conditions | Conditions on which to run the metric, filtering data before grouping, can be None                                             |
 | having     | Conditions to apply to groups                                                                                                  |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later |
+
+When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted.
 
 Example
 ```python
