@@ -61,8 +61,8 @@ class TestChecks(unittest.TestCase):
             timeliness_run_check("20:10:00", df, dateFormat="xx:ww:kk")
 
         # these should work
-        timeliness_run_check(["c1", "c2"], "20:10:00", df, dateFormat="xx:ww:kk")
-        timeliness_run_check(["c1", "c2"], "20:10:00", df, timeFormat="xx:ww:kk")
+        timeliness_run_check(["c1", "c2"], "20:10:00", df, dateFormat="%x:%w:%k")
+        timeliness_run_check(["c1", "c2"], "20:10:00", df, timeFormat="%x:%w:%k")
 
     def test_freshness_run_check(self):
         df = pd.DataFrame()
@@ -72,11 +72,8 @@ class TestChecks(unittest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             freshness_run_check(["c1", "c0"], df)
 
-        with self.assertRaises(TypeError) as cm:
-            freshness_run_check(None, df)
-
         # this should work
-        freshness_run_check(["c1"], df)
+        freshness_run_check(["c1"], timeFormat="s", df=df)
 
     def test_rule_run_check(self):
         df = pd.DataFrame()

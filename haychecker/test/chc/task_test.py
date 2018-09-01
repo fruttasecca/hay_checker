@@ -26,7 +26,7 @@ class TestTask(unittest.TestCase):
         task.add(completeness([0, 1, 2]))
         task.add(deduplication([0, 1]))
         task.add(deduplication())
-        task.add(timeliness(["c5"], value="10:10:10", timeFormat="SS:MM:HH"))
+        task.add(timeliness(["c5"], value="10:10:10", timeFormat="%S:%M:%H"))
         task.add(completeness())
         condition1 = {"column": "c3", "operator": "lt", "value": 50}
         condition2 = {"column": "c3", "operator": "gt", "value": 1.0}

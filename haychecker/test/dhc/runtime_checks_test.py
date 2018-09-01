@@ -84,11 +84,8 @@ class TestChecks(unittest.TestCase):
         with self.assertRaises(AssertionError) as cm:
             freshness_run_check(["c1", "c0"], df)
 
-        with self.assertRaises(TypeError) as cm:
-            freshness_run_check(None, df)
-
         # this should work
-        freshness_run_check(["c1"], df)
+        freshness_run_check(["c1"], timeFormat="s", df=df)
 
     def test_rule_run_check(self):
         data = pd.DataFrame()
