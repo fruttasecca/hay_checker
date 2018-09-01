@@ -189,7 +189,8 @@ Completeness region: 57.14285714285714, completeness reportsTo: 85.7142857142857
 
 ---
 ### Deduplication
-Measures how many values are duplicated within a column/dataset.
+Measures how many values are duplicated within a column/dataset, NaN and Null values
+are considered duplicated.
 
 - column:
 
@@ -270,6 +271,15 @@ Arguments
 | timeFormat | Format in which the value (and values in columns, if they are of string type) are; used to cast columns if they contain dates as strings. Either dateFormat or timeFormat must be passed, but not both|
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later                                                                                                           |
 
+
+If a dateFormat is passed, only days are considered for the comparison, hours, minutes, seconds, etc. are ignored.
+
+If a timeFormat is passed, if the timeFormat contains tokens that represent years, months, days, or anything
+related to dates, the comparison is made considering "everything". On the contrary, the comparison
+will only consider hours, minutes and seconds, allowing for a comparison between a value which is just
+a time, like 23:54:10 and timestamps which contain also years, months, etc; if we want to only
+compare by times while also having years/months/days in our timestamp. 
+
 Example
 
 ```python
@@ -308,6 +318,15 @@ Arguments
 | timeFormat | Format in which the values in columns are if those columns are of type string; otherwise they must be of type timestamp. Use this parameter if you are interested in results in terms of seconds. Either dateFormat or timeFormat must be passed, but not both. |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later                                                                                                                                      |
 
+
+If a dateFormat is passed, the average distance in days is returned, without considering hours, minutes, seconds, etc.
+
+If a timeFormat is passed and it contains tokens that represent years, months, days, or anything
+related to dates, the average distance in seconds is returned, also considering years, months and days.
+If the timeFormat does not contain anything related to dates, the average distance will be computed
+without considering years, months and days. This allows for computing the average distance only considering
+the hours, minutes, and seconds in our timestamps, if we are interested in how distant they are from "now" as a
+time and not as a date.
 
 Example
 
@@ -506,7 +525,7 @@ Havings are conditions expressed on aggregations of certain columns, as conditio
 dictionaries, specified on one column at a time and intended as joined by an AND operator.
 The operators "gt", "lt" and "eq" are allowed, and the aggregators "count", "min", "max", "avg", "sum" 
 can be used.
-To perform a "count(*)", simply provide "count" as an aggregator, and "*" as column.
+To perform a "count(\*)", simply provide "count" as an aggregator, and "\*" as column.
 ```python
 having1 = {"column": "*", "operator": "gt", "value": 1, "aggregator": "count"}
 ```
