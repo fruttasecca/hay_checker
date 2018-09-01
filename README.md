@@ -28,8 +28,13 @@ them one at a time, when possible.
 + hay_checker.py (the script that can be either submitted to spark or run in python3)
 + examples (examples with source)
 + setup.py (setup script for setuptools)
-+ dist (package created by setuptools, can be installed with pip)
++ dist, which contain a source archive and a built distribution (.whl), installable with "pip3 install <name>.tar.gz" or "pip3 install <name>.whl"
 + other stuff (license, figures, readme)
+
+##### Installation (currently on test PyPI server)
++ pip3 install haychecker, to download from PyPI or
++ pip3 install dist/haychecker-\<version\>.tar.gz, or
++ pip3 install dist/haychecker-\<version\>-py3-none-any.whl
 
 ## Getting Started
 
