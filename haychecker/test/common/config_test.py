@@ -367,6 +367,7 @@ class TestConfig(unittest.TestCase):
             Config(j11)
 
         j11["metrics"][0]["z<<"] = ["ss"]
+        del j11["metrics"][0]["dateFormat"]
         with self.assertRaises(AssertionError) as cm:
             Config(j11)
 
@@ -376,32 +377,6 @@ class TestConfig(unittest.TestCase):
             Config(j11)
 
         j11["metrics"][0]["timeFormat"] = "ss:hh:mm"
-        with self.assertRaises(AssertionError) as cm:
-            Config(j11)
-
-        del j11["metrics"][0]["dateFormat"]
-        j11["metrics"][0]["timeFormat"] = "ss:hh:mm"
-        j11["metrics"][0]["value"] = "10:10#10"
-        with self.assertRaises(AssertionError) as cm:
-            Config(j11)
-
-        j11["metrics"][0]["timeFormat"] = "ss:hh:mm"
-        j11["metrics"][0]["value"] = "10:10::0"
-        with self.assertRaises(AssertionError) as cm:
-            Config(j11)
-
-        j11["metrics"][0]["timeFormat"] = "ss:hh:mm"
-        j11["metrics"][0]["value"] = "10:10"
-        with self.assertRaises(AssertionError) as cm:
-            Config(j11)
-
-        j11["metrics"][0]["timeFormat"] = "ss:hh:mm"
-        j11["metrics"][0]["value"] = "a0:10:10"
-        with self.assertRaises(AssertionError) as cm:
-            Config(j11)
-
-        j11["metrics"][0]["timeFormat"] = "ss:hh:mm"
-        j11["metrics"][0]["value"] = "a0:10:10"
         with self.assertRaises(AssertionError) as cm:
             Config(j11)
 
