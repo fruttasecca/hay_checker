@@ -79,14 +79,14 @@ if __name__ == '__main__':
     if name == filename:
         # it has been launched using spark-submit
         print("Launching distributed version of hay_checker...")
-        dtask = dTask(config["metrics"])
+        dtask = dTask(config["metrics"], allow_casting=config["inferSchema"])
         results = dtask.run(df)
     else:
         # it has been launched as python3 hay_checker.py
         print("Launching centralized version of hay_checker...")
         print("Converting spark dataframe to pandas dataframe...")
         df = df.toPandas()
-        ctask = cTask(config["metrics"])
+        ctask = cTask(config["metrics"], allow_casting=config["inferSchema"])
         results = ctask.run(df)
 
     print("Writing results to %s" % config["output"])
