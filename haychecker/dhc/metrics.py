@@ -148,7 +148,7 @@ def deduplication_approximated(columns, df=None):
         return t.run(df)[0]["scores"]
 
 
-def contains_date(format):
+def _contains_date(format):
     """
     Check if a format (string) contains a date.
     (It currently check if the string contains tokens from the simpledateformat
@@ -205,7 +205,7 @@ def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
     elif timeFormat:
         value_long = to_timestamp(lit(value), timeFormat).cast("long")
         # check if value contains a date and not only hours, minutes, seconds
-        has_date = contains_date(timeFormat)
+        has_date = _contains_date(timeFormat)
         if has_date:
             for c in columns:
                 if types[c] == "timestamp":
@@ -329,7 +329,7 @@ def _freshness_todo(columns, df, dateFormat=None, timeFormat=None):
                 exit()
     elif timeFormat:
         # check if value contains a date and not only hours, minutes, seconds
-        has_date = contains_date(timeFormat)
+        has_date = _contains_date(timeFormat)
 
         current = current_timestamp()
         if has_date:
