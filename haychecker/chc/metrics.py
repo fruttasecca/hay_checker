@@ -3,8 +3,9 @@ Module containing metrics for the centralized version of hay_checker.
 """
 import numpy as np
 import pandas as pd
-from haychecker.chc import task
 from sklearn.metrics import mutual_info_score
+
+from haychecker.chc import task
 
 
 def _completeness_todo(columns, df):
@@ -155,12 +156,11 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
     todo = dict()
 
     if dateFormat:
-        cdateFormat = _convert_format(dateFormat)
-        cvalue = pd.to_datetime(value, format=cdateFormat)
+        cvalue = pd.to_datetime(value, format=dateFormat)
         for col in columns:
             if types[col] == str:
                 def _timeliness_agg(x):
-                    s = to_datetime_cached(x, cdateFormat)
+                    s = to_datetime_cached(x, dateFormat)
                     return (s < cvalue).mean()
 
                 _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "dateFormat", dateFormat, value))
@@ -177,8 +177,7 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
                     "or string, if the metric is being run on dateFormat.")
                 exit()
     elif timeFormat:
-        ctimeFormat = _convert_format(timeFormat)
-        cvalue = pd.to_datetime(value, format=ctimeFormat)
+        cvalue = pd.to_datetime(value, format=timeFormat)
 
         # check if value contains a date and not only hours, minutes, seconds
         has_date = contains_date(timeFormat)
@@ -186,7 +185,7 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _timeliness_agg(x):
-                        s = to_datetime_cached(x, ctimeFormat)
+                        s = to_datetime_cached(x, timeFormat)
                         return (s < cvalue).mean()
 
                     _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "timeFormat", timeFormat, value))
@@ -211,14 +210,14 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
             year = now.year
             month = now.month
             day = now.day
-            cvalue = pd.to_datetime(value, format=ctimeFormat)
+            cvalue = pd.to_datetime(value, format=timeFormat)
             cvalue = pd.Timestamp(second=cvalue.second, hour=cvalue.hour, minute=cvalue.minute, day=day, month=month,
                                   year=year)
 
             for col in columns:
                 if types[col] == str:
                     def _timeliness_agg(x):
-                        s = to_datetime_cached(x, ctimeFormat)
+                        s = to_datetime_cached(x, timeFormat)
                         s = _set_year_month_day(s, year, month, day)
                         return (s < cvalue).mean()
 
@@ -286,12 +285,11 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
     todo = dict()
 
     if dateFormat:
-        cdateFormat = _convert_format(dateFormat)
         now = pd.Timestamp.today()
         for col in columns:
             if types[col] == str:
                 def _freshness_agg(s):
-                    s = to_datetime_cached(s, cdateFormat)
+                    s = to_datetime_cached(s, dateFormat)
                     s = _set_hour_minute_second(s, 0, 0, 0)
                     return (now - s).astype("timedelta64[D]").abs().mean()
 
@@ -310,7 +308,6 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
                     "or string, if the metric is being run on dateFormat.")
                 exit()
     elif timeFormat:
-        ctimeFormat = _convert_format(timeFormat)
         now = pd.Timestamp.now()
 
         # check if value contains a date and not only hours, minutes, seconds
@@ -324,7 +321,7 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _freshness_agg(s):
-                        s = to_datetime_cached(s, ctimeFormat)
+                        s = to_datetime_cached(s, timeFormat)
                         return (now - s).astype("timedelta64[s]").abs().mean()
 
                     _freshness_agg.__name__ = ("_freshness_agg_%s_%s_%s" % (col, "timeFormat", timeFormat))
@@ -352,7 +349,7 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _freshness_agg(s):
-                        s = to_datetime_cached(s, ctimeFormat)
+                        s = to_datetime_cached(s, timeFormat)
                         s = _set_year_month_day(s, year, month, day)
                         return (now - s).astype("timedelta64[s]").abs().mean()
 

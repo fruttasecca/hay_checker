@@ -61,7 +61,7 @@ def timeliness_run_check(columns, value, df, dateFormat=None, timeFormat=None):
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
 
 
-def freshness_run_check(columns, df, dateformat=None, timeFormat=None):
+def freshness_run_check(columns, df, dateFormat=None, timeFormat=None):
     """
     Check for consistency between parameters and the dataframe, an assertion
     error will incur if the check is not passed.
@@ -70,6 +70,9 @@ def freshness_run_check(columns, df, dateformat=None, timeFormat=None):
     :param columns: Columns on which to run the metric
     :param df: Dataframe on which to run the metric
     """
+    assert (dateFormat is None or timeFormat is None) and (
+            not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, " \
+                                                               "not both. "
     for col in columns:
         assert col in df.columns, "Column '%s' is not a column part of the dataframe" % col
 
