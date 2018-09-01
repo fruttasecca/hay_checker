@@ -101,7 +101,7 @@ def deduplication(columns=None, df=None):
         return t.run(df)[0]["scores"]
 
 
-def contains_date(format):
+def _contains_date(format):
     """
     Check if a format contains tokens related to date.
 
@@ -117,7 +117,7 @@ def contains_date(format):
     return False
 
 
-def to_datetime_cached(s, format):
+def _to_datetime_cached(s, format):
     """
     Transform a series of strings (dates) to datetimes, with a dict
     to cache results.
@@ -178,7 +178,7 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
         for col in columns:
             if types[col] == str:
                 def _timeliness_agg(x):
-                    s = to_datetime_cached(x, dateFormat)
+                    s = _to_datetime_cached(x, dateFormat)
                     return (s < cvalue).mean()
 
                 _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "dateFormat", dateFormat, value))
@@ -198,12 +198,12 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
         cvalue = pd.to_datetime(value, format=timeFormat)
 
         # check if value contains a date and not only hours, minutes, seconds
-        has_date = contains_date(timeFormat)
+        has_date = _contains_date(timeFormat)
         if has_date:
             for col in columns:
                 if types[col] == str:
                     def _timeliness_agg(x):
-                        s = to_datetime_cached(x, timeFormat)
+                        s = _to_datetime_cached(x, timeFormat)
                         return (s < cvalue).mean()
 
                     _timeliness_agg.__name__ = ("_timeliness_agg_%s_%s_%s_%s" % (col, "timeFormat", timeFormat, value))
@@ -235,7 +235,7 @@ def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _timeliness_agg(x):
-                        s = to_datetime_cached(x, timeFormat)
+                        s = _to_datetime_cached(x, timeFormat)
                         s = _set_year_month_day(s, year, month, day)
                         return (s < cvalue).mean()
 
@@ -323,7 +323,7 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
         for col in columns:
             if types[col] == str:
                 def _freshness_agg(s):
-                    s = to_datetime_cached(s, dateFormat)
+                    s = _to_datetime_cached(s, dateFormat)
                     s = _set_hour_minute_second(s, 0, 0, 0)
                     return (now - s).astype("timedelta64[D]").abs().mean()
 
@@ -345,7 +345,7 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
         now = pd.Timestamp.now()
 
         # check if value contains a date and not only hours, minutes, seconds
-        has_date = contains_date(timeFormat)
+        has_date = _contains_date(timeFormat)
 
         if has_date:
             """
@@ -355,7 +355,7 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _freshness_agg(s):
-                        s = to_datetime_cached(s, timeFormat)
+                        s = _to_datetime_cached(s, timeFormat)
                         return (now - s).astype("timedelta64[s]").abs().mean()
 
                     _freshness_agg.__name__ = ("_freshness_agg_%s_%s_%s" % (col, "timeFormat", timeFormat))
@@ -383,7 +383,7 @@ def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
             for col in columns:
                 if types[col] == str:
                     def _freshness_agg(s):
-                        s = to_datetime_cached(s, timeFormat)
+                        s = _to_datetime_cached(s, timeFormat)
                         s = _set_year_month_day(s, year, month, day)
                         return (now - s).astype("timedelta64[s]").abs().mean()
 
