@@ -407,6 +407,14 @@ If any condition would lead to a comparison between a column of string type and 
 is allowed (allow_casting in the Task class constructor, or inferSchema in the config.json file), there will be
 an attempt to cast the column to a numeric type.
 
+
+Conditions are expressed as dictionaries, are defined on one column at a time, and allow for 
+the following operators: "gt", "lt" and "eq"; value should be a string or a number.
+Conditions in the list we pass as an argument are intended to be joined by AND.
+```python
+condition1 = {"column": "salary", "operator": "gt", "value": 2100}
+```
+
 Example
 
 ```python
@@ -439,6 +447,13 @@ Arguments
 If any condition would lead to a comparison between a column of string type and a number, if casting
 is allowed (allow_casting in the Task class constructor, or inferSchema in the config.json file), there will be
 an attempt to cast the column to a numeric type.
+
+Conditions are expressed as dictionaries, are defined on one column at a time, and allow for 
+the following operators: "gt", "lt" and "eq"; value should be a string or a number.
+Conditions in the list we pass as an argument are intended to be joined by AND.
+```python
+condition1 = {"column": "salary", "operator": "gt", "value": 2100}
+```
 
 
 Example
@@ -479,6 +494,23 @@ Arguments
 If any condition would lead to a comparison between a column of string type and a number, if casting
 is allowed (allow_casting in the Task class constructor, or inferSchema in the config.json file), there will be
 an attempt to cast the column to a numeric type.
+
+Conditions are expressed as dictionaries, are defined on one column at a time, and allow for 
+the following operators: "gt", "lt" and "eq"; value should be a string or a number.
+Conditions in the list we pass as an argument are intended to be joined by AND.
+```python
+condition1 = {"column": "salary", "operator": "gt", "value": 2100}
+```
+
+Havings are conditions expressed on aggregations of certain columns, as conditions, they are defined as 
+dictionaries, specified on one column at a time and intended as joined by an AND operator.
+The operators "gt", "lt" and "eq" are allowed, and the aggregators "count", "min", "max", "avg", "sum" 
+can be used.
+To perform a "count(*)", simply provide "count" as an aggregator, and "*" as column.
+```python
+having1 = {"column": "*", "operator": "gt", "value": 1, "aggregator": "count"}
+```
+
 
 Example
 ```python
