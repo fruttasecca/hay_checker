@@ -20,6 +20,7 @@ The point of the Task class is to 1) allow defining things once, but to use thos
 multiple times, 2) trying to optimize/combine metrics that can be run together in a single call, instead of calling
 them one at a time, when possible.
 
+![library architecture](figures/library_architecture.png)
 
 ## Getting Started
 
