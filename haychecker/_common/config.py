@@ -182,6 +182,8 @@ class Config(object):
         """
         assert metric["metric"] == "deduplication" or metric["metric"] == "deduplication_approximated", error_msg
         assert len(metric) == 1 or (len(metric) == 2 and "columns" in metric), error_msg
+        if metric["metric"] == "deduplication_approximated":
+            assert "columns" in metric
         if len(metric) == 2:
             columns = metric["columns"]
             assert len(columns) > 0, "Columns list is empty"
