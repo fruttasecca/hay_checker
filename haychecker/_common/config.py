@@ -5,7 +5,7 @@ to specific data conditions to be checked for quality.
 """
 
 import copy  # to deepcopy returned items from __get_item__
-import json
+import json  # to import the config file
 import os  # to check on paths
 
 
@@ -18,6 +18,12 @@ class Config(object):
     _allowed_digits = ["D", "d", "M", "m", "Y", "y", "H", "h", "M", "m", "S", "s"]
 
     def __init__(self, config):
+        """
+        Init the instance with the passed json config file, the file will be
+        checked for correctness.
+
+        :param config: Path to the json config file.
+        """
         # import dict and process/check for correctness
         if type(config) is str:
             self._config = json.load(open(config, "r"))
@@ -43,9 +49,11 @@ class Config(object):
     @staticmethod
     def _process_metrics(metrics):
         """
-        Given a list of metrics parameters, wich are in dicts,  check for their correctness, this will rise
+        Given a list of metrics parameters, which are in dicts,  check for their correctness, this will rise
         an assertion error if any incorrectness is met.
+
         :param metrics: List of metrics in dict form.
+        :type metrics: list
         """
         allowed_metrics = ["completeness", "freshness", "timeliness", "deduplication", "constraint", "rule",
                            "groupRule", "deduplication_approximated", "entropy", "mutual_info"]
@@ -84,7 +92,9 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: Completeness metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
         assert metric["metric"] == "completeness", error_msg
         assert len(metric) == 1 or (len(metric) == 2 and "columns" in metric), error_msg
@@ -102,7 +112,9 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: Freshness metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
 
         assert metric["metric"] == "freshness", error_msg
@@ -128,7 +140,9 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: Timeliness metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
 
         assert metric["metric"] == "timeliness", error_msg
@@ -162,10 +176,14 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: Deduplication metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
         assert metric["metric"] == "deduplication" or metric["metric"] == "deduplication_approximated", error_msg
         assert len(metric) == 1 or (len(metric) == 2 and "columns" in metric), error_msg
+        if metric["metric"] == "deduplication_approximated":
+            assert "columns" in metric
         if len(metric) == 2:
             columns = metric["columns"]
             assert len(columns) > 0, "Columns list is empty"
@@ -180,7 +198,9 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: Constraint metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
         assert metric["metric"] == "constraint", error_msg
         assert "when" in metric and "then" in metric, error_msg
@@ -228,7 +248,9 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: rule metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
         assert metric["metric"] == "rule", error_msg
         assert len(metric) == 2 and "conditions" in metric, error_msg
@@ -254,7 +276,9 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: groupRule metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
 
         assert metric["metric"] == "groupRule", error_msg
@@ -309,7 +333,9 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: Entropy metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
         assert metric["metric"] == "entropy", error_msg
         assert len(metric) == 2 and "column" in metric, error_msg
@@ -323,7 +349,9 @@ class Config(object):
         rise an assertion error if any error is met.
 
         :param metric: Mutual info metric in a dict form.
+        :type metric: dict
         :param error_msg: Error message to return in case of error.
+        :type error_msg: str
         """
         assert metric["metric"] == "mutual_info", error_msg
         assert len(metric) == 3 and "when" in metric and "then" in metric, error_msg
@@ -385,6 +413,7 @@ class Config(object):
         To access config items as if this class was a dictionary, note
         that returned items are a copy, changing those will not affect the instance
         of the Config class.
+
         :param item: Key to retrieve item (i.e. the table path)
         :return: Item (copy) mapped to Key, an exception is returned if not present.
         """

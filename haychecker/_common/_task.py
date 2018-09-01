@@ -1,6 +1,6 @@
 """
 Class that contains different _metrics to compute, can be run multiple times on
-multiple datasets, its meant to store a list of _metrics that you wish to compute
+multiple datasets, its meant to store a list of metrics that you wish to compute
 on different dataframes or by trying to run those metrics on the same pass on data
 to optimize.
 """
@@ -19,6 +19,7 @@ class _Task(object):
 
         :param metrics_params: List of metrics, each metric is a dictionary mapping params of
         the metric to a value, as in the json config file.
+        :type metrics_params: list
         """
         Config._process_metrics(metrics_params)
         self._metrics = metrics_params
@@ -29,6 +30,7 @@ class _Task(object):
         Eventual checks on the existence of columns with a certain name, format of values etc, are left to this method,
         same for checks on the df, like the type of columns, etc.
         :param df: Dataframe on which to run the task.
+        :type df: DataFrame
         :return: A list of metrics that is the same as the metrics contained in the instance of this
          Task class, each metric will have new field named 'scores', containing results related to that metric.
         """
@@ -40,6 +42,7 @@ class _Task(object):
         list or any returned metric (a dictionary) will have no effect on the task, because the returned list
         is a deepcopy of the original.
         :return: List of metrics (a copy), which are dict mapping params to values.
+        :rtype: list
         """
         # copy everything so that changing those has no effect on the _Task instance
         return copy.deepcopy(self._metrics)
@@ -50,6 +53,7 @@ class _Task(object):
         - a _Task class or any class extending it
         - a dict containing metric params, or a list of those
         :param input: a _Task class or a class inheriting from it, a list of metrics params or a single metric param
+        :type input dict/list/Task
         :return: Returns a reference to this instance of _Task, for chaining.
         """
         if type(input) is list:

@@ -1,5 +1,7 @@
 """
 Module containing metrics for the centralized version of hay_checker.
+Some functions parameters are unused, they have been kept like this to allow
+easier code evolution.
 """
 import numpy as np
 import pandas as pd
@@ -11,9 +13,13 @@ from haychecker.chc import task
 def _completeness_todo(columns, df):
     """
     Returns what to compute for each column in dict form, given the metric parameters.
+
     :param columns:
+    :type columns: list
     :param df:
+    :type df: DataFrame
     :return: Dict containing what to run (pandas functions names or named lambdas) for each column.
+    :rtype: dict
     """
     todo = dict()
     if columns is None:
@@ -25,15 +31,19 @@ def _completeness_todo(columns, df):
 
 def completeness(columns=None, df=None):
     """
-    If a df is passed, the completeness metric will be run and result returned
+    If a df is passed, the completeness metric will be run and results returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param columns: Columns on which to run the metric, None to run the completeness
     metric on the whole table.
+    :type columns: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
 
     # make a dict representing the parameters
@@ -50,9 +60,13 @@ def completeness(columns=None, df=None):
 def _deduplication_todo(columns, df):
     """
     Returns what to compute for each column in dict form, given the metric parameters.
+
     :param columns:
+    :type columns: list
     :param df:
+    :type df: DataFrame
     :return: Dict containing what to run (pandas functions names or named lambdas) for each column.
+    :rtype: dict
     """
     todo = dict()
     for col in columns:
@@ -65,12 +79,16 @@ def deduplication(columns=None, df=None):
     If a df is passed, the deduplication metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param columns: Columns on which to run the metric, None to run the deduplication
     metric on the whole table.
+    :type columns: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "deduplication"}
@@ -85,10 +103,14 @@ def deduplication(columns=None, df=None):
 
 def contains_date(format):
     """
-    strtime tokens
-    todo add more
+    Check if a format contains tokens related to date.
+
+    :param format:
+    :type format: str
+    :return: True if format contains tokens related to date, false otherwise.
+    :rtype: boolean
     """
-    part_of_date_tokens = "dmyY"
+    part_of_date_tokens = "aAwdbBmyYjUW"
     for token in part_of_date_tokens:
         if token in format:
             return True
@@ -99,6 +121,7 @@ def to_datetime_cached(s, format):
     """
     Transform a series of strings (dates) to datetimes, with a dict
     to cache results.
+
     :param s:
     :param format:
     :return:
@@ -130,25 +153,20 @@ def _set_hour_minute_second(series, hour=None, minute=None, second=None):
          }, errors="coerce")
 
 
-def _convert_format(format):
-    res = []
-    seen = set()
-    format = [x for x in format if not ((x.isalpha() and x in seen) or seen.add(x))]
-    for char in format:
-        if char.isalpha():
-            res.append("%")
-        res.append(char)
-    return "".join(res)
-
-
 def _timeliness_todo(columns, value, types, dateFormat=None, timeFormat=None):
     """
     Returns what to compute for each column in dict form, given the metric parameters.
+
     :param columns:
+    :type columns: list
     :param value
+    :type value: str
     :param dateFormat:
+    :type dateFormat: str
     :param timeFormat:
+    :type timeFormat: str
     :return: Dict containing what to run (pandas functions names or named lambdas) for each column.
+    :rtype: dict
     """
     assert (dateFormat is None or timeFormat is None) and (
             not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, " \
@@ -243,18 +261,27 @@ def timeliness(columns, value, df=None, dateFormat=None, timeFormat=None):
     If a df is passed, the timeliness metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
-    :param columns: Columns on which to run the metric
+    Use http://strftime.org/ directives to express formats.
+
+    :param columns: Columns on which to run the metric, columns of type string will be casted to timestamp
+    using the dateFormat or timeFormat argument.
+    :type columns: list
     :param value: Value used to run the metric, confronting values in the specified columns against it.
+    :type value: str
     :param dateFormat: Format in which the value (and values in columns, if they are of string type) are; used
-    if the value and columns contain dates as strings, or are of date or timestamp type. Either dateFormat
-    or timeFormat must be passed, but not both.
+    to cast columns if they contain dates as strings. Either dateFormat
+    or timeFormat must be passed, but not both. Use http://strftime.org/ directives to express formats.
+    :type dateFormat: str
     :param timeFormat: Format in which the value (and values in columns, if they are of string type) are; used
-    if the value and columns contain times as strings or are of timestamp type. Either dateFormat
-    or timeFormat must be passed, but not both.
+    to cast columns if they contain dates as strings. Either dateFormat
+    or timeFormat must be passed, but not both. Use http://strftime.org/ directives to express formats.
+    :type timeFormat: str
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     assert (dateFormat is None or timeFormat is None) and (
             not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, not both."
@@ -274,10 +301,17 @@ def timeliness(columns, value, df=None, dateFormat=None, timeFormat=None):
 def _freshness_todo(columns, types, dateFormat=None, timeFormat=None):
     """
     Returns what to compute for each column in dict form, given the metric parameters.
+
     :param columns:
+    :type columns: list
+    :param types: Dict mapping column names to type.
+    :type types: dict
     :param dateFormat:
+    :type dateFormat: str
     :param timeFormat:
+    :type timeFormat: str
     :return: Dict containing what to run (pandas functions names or named lambdas) for each column.
+    :rtype: dict
     """
     assert (dateFormat is None or timeFormat is None) and (
             not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, " \
@@ -375,17 +409,27 @@ def freshness(columns, df=None, dateFormat=None, timeFormat=None):
     If a df is passed, the freshness metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
-    :param columns: Columns on which to run the metric
+    Use http://strftime.org/ directives to express formats.
+
+    :param columns: Columns on which to run the metric, columns of type string will be casted to timestamp
+    using the dateFormat or timeFormat argument.
+    :type columns: list
     :param dateFormat: Format in which the values in columns are if those columns are of type string; otherwise they must
-    be of type date or timestamp. Use this parameter if you are interested in a result in terms of days.
+    be of type timestamp. Use this parameter if you are interested in a result in terms of days.
     Either dateFormat or timeFormat must be passed, but not both.
+    Use http://strftime.org/ directives to express formats.
+    :type dateFormat: str
     :param timeFormat: Format in which the values in columns are if those columns are of type string; otherwise they must
-    be of type timestamp. Use this parameter if you are interested in a result totalling less than a day, shown
-    in a format of HH:mm:ss. Either dateFormat or timeFormat must be passed, but not both.
+    be of type timestamp. Use this parameter if you are interested in results in terms of seconds.
+    Either dateFormat or timeFormat must be passed, but not both.
+    Use http://strftime.org/ directives to express formats.
+    :type timeFormat: str
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "freshness", "columns": columns}
@@ -404,10 +448,14 @@ def _and_conditions_as_columns(conditions, df):
     """
     Computes a boolean series given conditions of columns on the dataframes, representing
     what rows are passing the condition.
+
     :param conditions:
+    :type conditions: list
     :param df:
+    :type df: DataFrame
     :return: Boolean series representing what rows are passing the conditions, can be used as indices to
     get those rows from the df.
+    :rtype: Series
     """
     # add first condition
     cond = conditions[0]
@@ -448,11 +496,17 @@ def _and_conditions_as_columns(conditions, df):
 def _constraint_compute(when, then, conditions, df):
     """
     Computes the metric result.
+
     :param when:
+    :type when: list
     :param then:
+    :type then: list
     :param conditions:
+    :type conditions: list
     :param df:
+    :type df: DataFrame
     :return: Result of the metric.
+    :rtype: float
     """
 
     # filter if needed
@@ -514,6 +568,7 @@ def constraint(when, then, conditions=None, df=None):
     If a df is passed, the constraint metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param when: A list of columns in the df to use as the precondition of a functional constraint. No column
     should be in both when and then.
     :param then: A list of columns in the df to use as the postcondition of a functional constraint. No column
@@ -521,8 +576,10 @@ def constraint(when, then, conditions=None, df=None):
     :param conditions: Conditions on which to filter data before applying the metric.
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "constraint", "when": when, "then": then}
@@ -539,7 +596,11 @@ def _rule_compute(conditions, df):
     """
     Computes the metric result.
     :param conditions:
+    :type conditions: list
+    :param df:
+    :type df: DataFrame
     :return: Result of the metric.
+    :rtype: float
     """
     filtering_conditions = _and_conditions_as_columns(conditions, df)
     res = filtering_conditions.mean()
@@ -551,11 +612,14 @@ def rule(conditions, df=None):
     If a df is passed, the rule metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param conditions: Conditions on which to run the metric.
-    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    :type conditions: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
-    run later.
+    :type df: DataFrame
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "rule", "conditions": conditions}
@@ -573,6 +637,7 @@ def _remove_duplicate_groupby_aggs(aggs):
     the same way will be kept.
 
     :param aggs:
+    :type aggs: list
     :return:
     """
     # iterate over dicts, getting lists of stuff to do for each column
@@ -599,9 +664,12 @@ def _grouby_aggregations(conditions, columns):
 
     :param conditions: List of dictionaries which represent "having" conditions, i.e.
     having min(col1) > 5.
+    :type conditions: list
     :param columns: Columns on which the group by is made.
+    :type columns: list
     :return: A dict mapping each column to named lambdas to compute on that column, which results
     will be later required to check on the conditions in the "conditions" parameter.
+    :rtype: dict
     """
     aggs = dict()
     for cond in conditions:
@@ -700,9 +768,13 @@ def _grouprule_aggs_filter(having, columns):
     """
     Given (having) conditions, return what to filter on as a string, to be used
     after groupbys as grouped.query(string returned by this function).
+
     :param having:
+    :type having: list
     :param columns: Columns on which the group by is made.
+    :type columns: list
     :return: String to be used on a df.query to filter based on the "having" conditions.
+    :rtype: str
     """
     # add first condition
     cond = having[0]
@@ -735,10 +807,15 @@ def _grouprule_compute(columns, conditions, having, df):
     """
     Computes the metric result.
     :param columns:
+    :type columns: list
     :param conditions:
+    :type conditions: list
     :param having:
+    :type having: list
     :param df:
+    :type df: DataFrame
     :return: Result of the metric.
+    :rtype: float
     """
     # filter if needed
     """
@@ -766,16 +843,22 @@ def _grouprule_compute(columns, conditions, having, df):
 
 def grouprule(columns, having, conditions=None, df=None):
     """
-    If a df is passed, the rule metric will be run and result returned
+    If a df is passed, the groupRule metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param columns: Columns on which to run the metric, grouping data.
+    :type columns: list
     :param conditions: Conditions on which to run the metric, filtering data before grouping, can be None.
+    :type conditions: list
     :param having: Conditions to apply to groups.
+    :type having: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "groupRule", "columns": columns, "having": having}
@@ -791,9 +874,13 @@ def grouprule(columns, having, conditions=None, df=None):
 def _entropy_compute(column, df):
     """
     Computes the metric result.
+
     :param column:
+    :type column: str/int
     :param df:
+    :type df: DataFrame
     :return: Result of the metric.
+    :rtype: float
     """
     value, counts = np.unique(df[column].dropna(), return_counts=True)
     norm_counts = counts / counts.sum()
@@ -805,11 +892,15 @@ def entropy(column, df=None):
     If a df is passed, the entropy metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param column: Column on which to run the metric.
+    :type column: str/int
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "entropy", "column": column}
@@ -823,9 +914,13 @@ def entropy(column, df=None):
 def _mutual_info_compute(when, then, df):
     """
     Computes the metric results.
+
     :param when:
+    :type when: str/int
     :param then:
+    :type then: str/int
     :param df:
+    :type df: DataFrame
     :return: Result of the metric.
     """
     index = (df[when].isna()) | (df[then].isna())
@@ -841,12 +936,17 @@ def mutual_info(when, then, df=None):
     If a df is passed, the mutual_info metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param when: First column on which to compute MI.
+    :type when: str/int
     :param then: Second column on which to compute MI.
+    :type then: str/int
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "mutual_info", "when": when, "then": then}
