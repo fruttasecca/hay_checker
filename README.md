@@ -44,22 +44,25 @@ to use *distributed* or *centralized* versions, respectively.
 
 **Input**
 
-A .json configuration file, where the following values must be provided:
+A .json configuration file, where the following values can be provided:
 
 |             |                                                                                                                                                                                                                                                 |
 |-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | table       | a string with information about the input table location, it can be:     - html link to local or remote file     - jdbc file path     - hdfs file path (by default a path that is not html link or jdbc file is assumed to be a hdfs file path) |
 | inferSchema | boolean, spark inferSchema argument for csv import                                                                                                                                                                                              |
-| delimiter   | string, spark delimiter argument for csv import                                                                                                                                                                                                 |
-| header      | boolean, spark inferSchema argument for csv import                                                                                                                                                                                              |
+| delimiter   | string, spark delimiter argument for csv import, *optional*, default=","                                                                                                                                                                                                 |
+| header      | boolean, spark inferSchema argument for csv import, *optional*, default=true                                                                                                                                                                                              |
 | output      | a string with path to output file                                                                                                                                                                                                               |
-| verbose     | boolean, if true configuration options are printed to the screen                                                                                                                                                                                |
+| verbose     | boolean, if true configuration options are printed to the screen, *optional*, default=false                                                                                                                                                                                |
 | metrics     | a list of *metric* objects, composed by the following fields:      - "metric": a string specifying the name of the metric     - metric arguments, in key:value format                                                                           |
 
 
 You can find an example in [config-example.json](examples/resources/config-example.json) file
-under *examples/resources* direcotry.
+under *examples/resources* directory
 
+**Output**
+
+A .json file containing scores of input metrics
 
 ### Python library
 
