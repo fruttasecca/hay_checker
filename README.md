@@ -22,6 +22,15 @@ them one at a time, when possible.
 
 ![library architecture](figures/library_architecture.png)
 
+##### The repository
++ haychecker, (directory with source)
++ run_tests.sh (to run all tests, which are in haychecker/test)
++ hay_checker.py (the script that can be either submitted to spark or run in python3)
++ examples (examples with source)
++ setup.py (setup script for setuptools)
++ dist (package created by setuptools, can be installed with pip)
++ other stuff (license, figures, readme)
+
 ## Getting Started
 
 These instructions will provide a simple guide on how to use the tool and 
