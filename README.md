@@ -22,6 +22,15 @@ them one at a time, when possible.
 
 ![library architecture](figures/library_architecture.png)
 
+##### The repository
++ haychecker, (directory with source)
++ run_tests.sh (to run all tests, which are in haychecker/test)
++ hay_checker.py (the script that can be either submitted to spark or run in python3)
++ examples (examples with source)
++ setup.py (setup script for setuptools)
++ dist (package created by setuptools, can be installed with pip)
++ other stuff (license, figures, readme)
+
 ## Getting Started
 
 These instructions will provide a simple guide on how to use the tool and 
@@ -30,21 +39,16 @@ the prerequisites needed for both distributed and centralized versions of
 
 ### Prerequisites
 
-What things you need to use *haychecker* (both script and library)
-
-(requirements needed from the distributed side)
+Requirements:
 
 ```
-hadoop
+hadoop 
 spark
 pyspark
-```
-
-(requirements needed from the centralized side)
-
-```
 pandas
+sklearn
 ```
+
 
 ## API Reference & examples
 
@@ -70,7 +74,7 @@ A .json configuration file, where the following values can be provided:
 
 |             |                                                                                                                                                                                                                                                 |
 |-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| table       | a string with information about the input table location, it can be:     - html link to local or remote file     - jdbc file path     - hdfs file path (by default a path that is not html link or jdbc file is assumed to be a hdfs file path) |
+| table       | Path to the data, see below this table for more details
 | inferSchema | boolean, spark inferSchema argument for csv import, setting this to true will also allow casting of columns which are strings when confronted with values having a numeric type, if false such casting is not performed, and instead an error is raised                                                                                                                                                                                              |
 | delimiter   | string, spark delimiter argument for csv import, *optional*, default=","                                                                                                                                                                                                 |
 | header      | boolean, spark inferSchema argument for csv import, *optional*, default=true                                                                                                                                                                                              |
@@ -78,6 +82,15 @@ A .json configuration file, where the following values can be provided:
 | verbose     | boolean, if true configuration options are printed to the screen, *optional*, default=false                                                                                                                                                                                |
 | metrics     | a list of *metric* objects, composed by the following fields:      - "metric": a string specifying the name of the metric     - metric arguments, in key:value format                                                                           |
 
+Possible ways to provide data with the "table" parameter in the config json:
++ local file, i.e. file:///home/myname/mydata.csv
++ file in the hdfs, such as /mydata.csv
++ a table through jdbc, the string must specify the jdbc url first and the table name second, separated by space; i.e. "jdbc://path cooltable". Note that the url must always begin with "jdbc"
++ data from the web, currently only the json and csv format are supported, the url must always begin with "http", and it must contain either csv or json respectively
++ a table from the hdfs, the data importer will assume that a table has been passed if: the "table" string does not begin with "http" or "jdbc", and it does not terminate with "parquet", "json", "csv".
+
+Local and hdfs file import currently support parquet, csv and json files; the file must terminate
+with ".parquet", ".csv" or ".json".
 
 [config-example.json](examples/resources/config-example.json) in the *examples/resources* directory is provided as an example.
 
@@ -88,7 +101,7 @@ A .json file containing scores of input metrics
 ### Python library
 
 Simple examples of metrics usage. More examples and source code can be 
-found in [examples](./examples) folder
+found in [examples](./examples) folder. Metrics functions all have allow_casting enabled (see the inferSchema in the above table if you are confused by this).
 
 **Centralized version**
 
@@ -278,7 +291,7 @@ Arguments
 
 If a dateFormat is passed, only days are considered for the comparison, hours, minutes, seconds, etc. are ignored.
 
-If a timeFormat is passed, if the timeFormat contains tokens that represent years, months, days, or anything
+If a timeFormat is passed and it contains tokens that represent years, months, days, or anything
 related to dates, the comparison is made considering "everything". On the contrary, the comparison
 will only consider hours, minutes and seconds, allowing for a comparison between a value which is just
 a time, like 23:54:10 and timestamps which contain also years, months, etc; if we want to only
