@@ -18,6 +18,16 @@ from haychecker.dhc import metrics as m
 
 
 class Task(_Task):
+    """
+    Class to contain defined metrics to run them on different data and/or at different times.
+    An instance of it can contain any number of metrics to be run, trying
+    to run them together/on the same pass on the data instead of one at a time when possible.
+    Other tasks can be added to a Task, or
+    metrics as a dict describing the metric can be added to a task, or a list of those metrics.
+    Once run on a df, it returns a list of results, which are the list of contained metrics (in the same order)
+    with a score field added for each metric, containing results/scores of that metric.
+    """
+
     def __init__(self, metrics_params=[], allow_casting=True):
         """
         Init the class, adding _metrics to the
@@ -25,10 +35,12 @@ class Task(_Task):
 
         :param metrics_params: List of _metrics, each metric is a dictionary mapping params of
         the metric to a value, as in the json config file.
+        :type metrics_params: list
         :param allow_casting: If a column not of the type of what it is evaluated against (i.e. a condition checking
         for column 'x' being gt 3.0, with the type of 'x' being string) should be casted to the type of the value
         it is checked against. If casting is not allowed the previous example would provoke an error, (through an
         assertion); default is True.
+        :type allow_casting: bool
         """
         super().__init__(metrics_params)
         self._allow_casting = allow_casting
@@ -36,11 +48,15 @@ class Task(_Task):
     @staticmethod
     def _columns_index_to_name(columns, idxdict):
         """
-        Returns a list of column names and indexes as a list of columns names, substituting column
-        indexes with their respective name.
+        Substitutes column indexes with column names, return the passed list of columns
+        as a list of names only.
+
         :param columns:
+        :type columns: list
         :param idxdict:
+        :type idxdict: dict
         :return:
+        :rtype: list
         """
         res = []
         for col in columns:
@@ -54,14 +70,19 @@ class Task(_Task):
     @staticmethod
     def _conditions_column_index_to_name(conditions, idxdict, typesdict, allow_casting):
         """
-        Column indexes will be substituted by names, while column names (strings) will
-        be untouched.
+        Changes the conditions contained in the list in the following way:
+        column indexes will be substituted by names, while column names (strings) will
+        be untouched. If casting is allowed conditions which requires casting will
+        have a new field 'casted_to' added, mapped to 'numeric'.
 
         :param conditions:
-        :param idxdict:
-        :param typesdict: Dict mapping column to a type
+        :type conditions: list
+        :param idxdict: Dict mapping column indexes to names
+        :type idxdict: dict
+        :param typesdict: Dict mapping column names to a type
+        :type typesdict: dict
         :param allow_casting: If casting a column to a type matching the 'value' field in condition is allowed
-        :return:
+        :type allow_casting: bool
         """
         for cond in conditions:
             col = cond["column"]
@@ -77,6 +98,16 @@ class Task(_Task):
 
     @staticmethod
     def _perform_run_checks(metrics, df, allow_casting):
+        """
+        Perform run time parameter checking.
+
+        :param metrics:
+        :type metrics: list
+        :param df:
+        :type df: DataFrame
+        :param allow_casting:
+        :type allow_casting: bool
+        """
 
         # maps an index to a column name
         idxdict = dict(enumerate(df.columns))
@@ -147,8 +178,15 @@ class Task(_Task):
 
     def run(self, df):
         """
-        For each metric check parameter for run time correctness (i.e. column with those name
-         existing in the df, etc.), then perform the required computations.
+        For each metric check its parameters for run time correctness (i.e. column with those name
+        existing in the df, etc.), then perform the required computations, return results as a list of
+        dictionaries identical to the metrics contained in the task, each with a field "scores" added, mapped
+        to a list of scores related to the metric.
+
+        :param df: DataFrame
+        :type df: DataFrame
+        :return: List of metrics with their scores added as a field.
+        :rtype: list
         """
         metrics = copy.deepcopy(self._metrics)
         # run time checks on every metric before starting, substitute column indexes with names
@@ -283,6 +321,17 @@ class Task(_Task):
 
     @staticmethod
     def _add_scores_to_metrics(metrics, collected, has_count_all, df):
+        """
+        Add a scores field to the passed metrics, getting them from the collected argument, a
+        dataframe.
+
+        :param metrics:
+        :type metrics: list
+        :param collected:
+        :type collected: DataFrame
+        :param df:
+        :type df: DataFrame
+        """
         index = 0
         collected = np.array(collected)
         total_rows = collected[-1] if has_count_all else None
