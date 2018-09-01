@@ -1,14 +1,14 @@
 #!/usr/bin/python3
+import json
 import sys
 
-import requests
-import json
-from pyspark.sql import SparkSession
 import __main__
+import requests
+from pyspark.sql import SparkSession
 
 from haychecker._common.config import Config
-from haychecker.dhc.task import Task as dTask
 from haychecker.chc.task import Task as cTask
+from haychecker.dhc.task import Task as dTask
 
 
 def import_data(spark, path, has_header, delimiter, infer_schema):
@@ -90,5 +90,10 @@ if __name__ == '__main__':
         results = ctask.run(df)
 
     print("Writing results to %s" % config["output"])
+    res = dict()
+    for k, v, in config._config.items():
+        if k != "metrics":
+            res[k] = v
+    res["|results"] = results
     with open(config["output"], 'w') as outfile:
-        json.dump(results, outfile, sort_keys=True)
+        json.dump(res, outfile, sort_keys=True)

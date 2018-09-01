@@ -1,0 +1,94 @@
+{
+  "table": "file:///PATH TO data.csv found in examples directory",
+  "inferSchema": true,
+  "delimiter": ",",
+  "header": true,
+  "output": "/tmp/output.json",
+  "verbose": true,
+  "metrics": [
+    {
+      "metric": "completeness"
+    },
+    {
+      "metric": "completeness",
+      "columns": [
+        0,
+        1
+      ]
+    },
+    {
+      "metric": "deduplication",
+      "columns": [
+        "c0",
+        "c1"
+      ]
+    },
+    {
+      "metric": "deduplication"
+    },
+    {
+      "metric": "rule",
+      "conditions": [ {
+			"column": 0,
+			"operator": "lt",
+			"value": 5
+		}, {
+			"column": 0,
+			"operator": "gt",
+			"value": 1
+		} ]
+    },
+    {
+      "metric": "groupRule",
+      "columns": [
+        "c0",
+        "c1"
+      ],
+      "having": [
+        {
+          "column": "*",
+          "aggregator": "count",
+          "operator": "gt",
+          "value": 2
+        }
+      ],
+      "conditions": [
+        {
+          "column": 2,
+          "operator": "lt",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "metric": "entropy",
+      "column": 0
+    },
+    {
+      "metric": "entropy",
+      "column": "c0"
+    },
+    {
+      "metric": "mutual_info",
+      "when": "c0",
+      "then": "c1"
+    },
+    {
+      "metric": "constraint",
+      "when": [
+        "c0",
+        1
+      ],
+      "then": [
+        2
+      ],
+      "conditions": [
+        {
+          "column": "d0",
+          "operator": "lt",
+          "value": 4
+        }
+      ]
+    }
+  ]
+}
