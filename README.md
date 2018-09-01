@@ -25,7 +25,7 @@ them one at a time, when possible.
 
 These instructions will provide a simple guide on how to use the tool and 
 the prerequisites needed for both distributed and centralized versions of
- the *hay checker*
+ *hay checker*
 
 ### Prerequisites
 
@@ -70,7 +70,7 @@ A .json configuration file, where the following values can be provided:
 |             |                                                                                                                                                                                                                                                 |
 |-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | table       | a string with information about the input table location, it can be:     - html link to local or remote file     - jdbc file path     - hdfs file path (by default a path that is not html link or jdbc file is assumed to be a hdfs file path) |
-| inferSchema | boolean, spark inferSchema argument for csv import                                                                                                                                                                                              |
+| inferSchema | boolean, spark inferSchema argument for csv import, setting this to true will also allow casting of columns which are strings when confronted with values having a numeric type, if false such casting is not performed, and instead an error is raised                                                                                                                                                                                              |
 | delimiter   | string, spark delimiter argument for csv import                                                                                                                                                                                                 |
 | header      | boolean, spark inferSchema argument for csv import                                                                                                                                                                                              |
 | output      | a string with path to output file                                                                                                                                                                                                               |
@@ -78,8 +78,7 @@ A .json configuration file, where the following values can be provided:
 | metrics     | a list of *metric* objects, composed by the following fields:      - "metric": a string specifying the name of the metric     - metric arguments, in key:value format                                                                           |
 
 
-You can find an example in [config-example.json](examples/resources/config-example.json) file
-under *examples/resources* direcotry.
+[config-example.json](examples/resources/config-example.json) in the *examples/resources* directory is provided as an example.
 
 
 ### Python library
