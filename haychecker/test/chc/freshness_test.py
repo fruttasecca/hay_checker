@@ -8,17 +8,6 @@ import pandas as pd
 from haychecker.chc.metrics import freshness
 
 
-def _convert_format(format):
-    res = []
-    seen = set()
-    format = [x for x in format if not ((x.isalpha() and x in seen) or seen.add(x))]
-    for char in format:
-        if char.isalpha():
-            res.append("%")
-        res.append(char)
-    return "".join(res)
-
-
 def to_datetime_cached(s, format):
     """
     Transform a series of strings (dates) to datetimes, with a dict
@@ -39,11 +28,11 @@ class TestFreshness(unittest.TestCase):
         df["c1"] = []
         df["c2"] = []
 
-        r1, r2 = freshness(["c1", "c2"], dateFormat="dd:MM:yyyy", df=df)
+        r1, r2 = freshness(["c1", "c2"], dateFormat="%d:%M:%y", df=df)
         self.assertEqual("None days", r1)
         self.assertEqual("None days", r2)
 
-        r1, r2 = freshness(["c1", "c2"], timeFormat="dd:MM:yyyy", df=df)
+        r1, r2 = freshness(["c1", "c2"], timeFormat="%d:%M:%y", df=df)
         self.assertEqual("None seconds", r1)
         self.assertEqual("None seconds", r2)
 
@@ -54,17 +43,16 @@ class TestFreshness(unittest.TestCase):
         df["c1"] = df["c1"].astype(str)
         df["c2"] = df["c2"].astype(str)
 
-        r1, r2 = freshness(["c1", "c2"], dateFormat="dd:MM:yyyy", df=df)
+        r1, r2 = freshness(["c1", "c2"], dateFormat="%d:%M:%y", df=df)
         self.assertEqual(r1, "nan days")
         self.assertEqual(r2, "nan days")
 
-        r1, r2 = freshness(["c1", "c2"], timeFormat="dd:MM:yyyy", df=df)
+        r1, r2 = freshness(["c1", "c2"], timeFormat="%d:%M:%y", df=df)
         self.assertEqual(r1, "nan seconds")
         self.assertEqual(r2, "nan seconds")
 
     def test_dateformat(self):
-        format = "YYYY-mm-dd HH:MM:SS"
-        cformat = _convert_format(format)
+        format = "%Y-%m-%d %H:%M:%S"
         now = str(datetime.datetime.now())[:19]
 
         # test wrong type of column
@@ -76,8 +64,8 @@ class TestFreshness(unittest.TestCase):
         df = pd.DataFrame()
         dates = [now for _ in range(100)]
         df["c1"] = dates
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         r1, r2, r3 = freshness(["c1", "c2", "c3"], dateFormat=format, df=df)
         self.assertEqual(r1, "0.0 days")
@@ -89,8 +77,8 @@ class TestFreshness(unittest.TestCase):
         for i in range(20):
             dates[-(i + 1)] = None
         df["c1"] = dates
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         r1, r2, r3 = freshness(["c1", "c2", "c3"], dateFormat=format, df=df)
         self.assertEqual(r1, "0.0 days")
@@ -98,8 +86,7 @@ class TestFreshness(unittest.TestCase):
         self.assertEqual(r3, "0.0 days")
 
     def test_timeformat_nodate(self):
-        format = "HH:MM:SS"
-        cformat = _convert_format(format)
+        format = "%H:%M:%S"
         now = str(datetime.datetime.now())[11:19]
 
         # test wrong type of column
@@ -113,8 +100,8 @@ class TestFreshness(unittest.TestCase):
         df = pd.DataFrame()
         times = [now for _ in range(100)]
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         r1, r2, r3 = freshness(["c1", "c2", "c3"], timeFormat=format, df=df)
         r1 = float(r1.split(" ")[0])
@@ -129,8 +116,8 @@ class TestFreshness(unittest.TestCase):
         for i in range(20):
             times[-(i + 1)] = None
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         r1, r2, r3 = freshness(["c1", "c2", "c3"], timeFormat=format, df=df)
         r1 = float(r1.split(" ")[0])
@@ -141,8 +128,7 @@ class TestFreshness(unittest.TestCase):
         self.assertLessEqual(r3, 10.0)
 
     def test_timeformat_nodate_dateincolumns(self):
-        format = "HH:MM:SS"
-        cformat = _convert_format(format)
+        format = "%H:%M:%S"
         now = str(datetime.datetime.now())[11:19]
 
         # test wrong type of column
@@ -156,8 +142,8 @@ class TestFreshness(unittest.TestCase):
         df = pd.DataFrame()
         times = [now for _ in range(100)]
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         r1, r2, r3 = freshness(["c1", "c2", "c3"], timeFormat=format, df=df)
         r1 = float(r1.split(" ")[0])
@@ -172,8 +158,8 @@ class TestFreshness(unittest.TestCase):
         for i in range(20):
             times[-(i + 1)] = ""
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         r1, r2, r3 = freshness(["c1", "c2", "c3"], timeFormat=format, df=df)
         r1 = float(r1.split(" ")[0])
@@ -184,8 +170,7 @@ class TestFreshness(unittest.TestCase):
         self.assertLessEqual(r3, 10.0)
 
     def test_timeformat_withdate(self):
-        format = "YYYY-mm-dd HH:MM:SS"
-        cformat = _convert_format(format)
+        format = "%Y-%m-%d %H:%M:%S"
         time = str(datetime.datetime.now())[11:19]
         time = "1970-01-01 " + time
 
@@ -200,8 +185,8 @@ class TestFreshness(unittest.TestCase):
         df = pd.DataFrame()
         times = [time for _ in range(100)]
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
         # seconds from 1970 plus 10 seconds for computation time
         seconds = int(timelib.time()) + 10
 
@@ -218,8 +203,8 @@ class TestFreshness(unittest.TestCase):
         for i in range(20):
             times[-(i + 40)] = np.NaN
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         r1, r2, r3 = freshness(["c1", "c2", "c3"], timeFormat=format, df=df)
         r1 = float(r1.split(" ")[0])

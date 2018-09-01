@@ -7,17 +7,6 @@ import pandas as pd
 from haychecker.chc.metrics import timeliness
 
 
-def _convert_format(format):
-    res = []
-    seen = set()
-    format = [x for x in format if not ((x.isalpha() and x in seen) or seen.add(x))]
-    for char in format:
-        if char.isalpha():
-            res.append("%")
-        res.append(char)
-    return "".join(res)
-
-
 def to_datetime_cached(s, format):
     """
     Transform a series of strings (dates) to datetimes, with a dict
@@ -39,7 +28,7 @@ class TestTimeliness(unittest.TestCase):
         df["c1"] = pd.Series(dtype=str)
         df["c2"] = pd.Series(dtype=str)
 
-        r1, r2 = timeliness(["c1", "c2"], dateFormat="dd:mm:YYYY", df=df, value="10:12:1980")
+        r1, r2 = timeliness(["c1", "c2"], dateFormat="%d:%m:%Y", df=df, value="10:12:1980")
         self.assertEqual(r1, 100.)
         self.assertEqual(r2, 100.)
 
@@ -50,17 +39,16 @@ class TestTimeliness(unittest.TestCase):
         df["c1"] = df["c1"].astype(str)
         df["c2"] = df["c1"].astype(str)
 
-        r1, r2 = timeliness(["c1", "c2"], dateFormat="dd:mm:YYYY", df=df, value="10:12:1980")
+        r1, r2 = timeliness(["c1", "c2"], dateFormat="%d:%m:%Y", df=df, value="10:12:1980")
         self.assertEqual(r1, 0.)
         self.assertEqual(r2, 0.)
 
-        r1, r2 = timeliness(["c1", "c2"], timeFormat="SS:MM:HH", df=df, value="10:12:19")
+        r1, r2 = timeliness(["c1", "c2"], timeFormat="%S:%M:%H", df=df, value="10:12:19")
         self.assertEqual(r1, 0.)
         self.assertEqual(r2, 0.)
 
     def test_dateformat(self):
-        format = "dd/mm/YYYY"
-        cformat = _convert_format(format)
+        format = "%d/%m/%Y"
 
         # test wrong type of column
         df = pd.DataFrame()
@@ -76,8 +64,8 @@ class TestTimeliness(unittest.TestCase):
         dates.extend(["20/05/2000" for _ in range(50)])
         random.shuffle(dates)
         df["c1"] = dates
-        df["c2"] = pd.to_datetime(df["c1"], errors="raise", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="raise", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         value = "21/05/2000"
         r1, r2, r3 = timeliness(["c1", "c2", "c3"], dateFormat=format, df=df, value=value)
@@ -109,8 +97,8 @@ class TestTimeliness(unittest.TestCase):
         for i in range(20):
             dates[-(i + 1)] = None
         df["c1"] = dates
-        df["c2"] = to_datetime_cached(df["c1"], cformat)
-        df["c3"] = to_datetime_cached(df["c1"], cformat)
+        df["c2"] = to_datetime_cached(df["c1"], format)
+        df["c3"] = to_datetime_cached(df["c1"], format)
 
         value = "21/05/2000"
         r1, r2, r3 = timeliness(["c1", "c2", "c3"], dateFormat=format, df=df, value=value)
@@ -137,8 +125,7 @@ class TestTimeliness(unittest.TestCase):
         self.assertEqual(r3, 0.)
 
     def test_timeformat_nodate(self):
-        format = "SS:HH:MM"
-        cformat = _convert_format(format)
+        format = "%S:%H:%M"
 
         # test wrong type of column
         df = pd.DataFrame()
@@ -154,8 +141,8 @@ class TestTimeliness(unittest.TestCase):
         times.extend(["01:18:01" for _ in range(50)])
         random.shuffle(times)
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         value = "01:19:01"
         r1, r2, r3 = timeliness(["c1", "c2", "c3"], timeFormat=format, df=df, value=value)
@@ -187,8 +174,8 @@ class TestTimeliness(unittest.TestCase):
         for i in range(20):
             times[-(i + 1)] = np.NaN
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         value = "00:19:00"
         r1, r2, r3 = timeliness(["c1", "c2", "c3"], timeFormat=format, df=df, value=value)
@@ -214,8 +201,7 @@ class TestTimeliness(unittest.TestCase):
         self.assertEqual(r3, 0.)
 
     def test_timeformat_withdate(self):
-        format = "dd/mm/YYYY SS:HH:MM"
-        cformat = _convert_format(format)
+        format = "%d/%m/%Y %S:%H:%M"
 
         # test wrong type of column
         df = pd.DataFrame()
@@ -232,8 +218,8 @@ class TestTimeliness(unittest.TestCase):
         times.extend(["21/10/1900 01:18:01" for _ in range(100)])
         random.shuffle(times)
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         value = "21/10/1900 01:19:01"
         r1, r2, r3 = timeliness(["c1", "c2", "c3"], timeFormat=format, df=df, value=value)
@@ -273,8 +259,8 @@ class TestTimeliness(unittest.TestCase):
             times[-i] = np.NaN
             times[-(i + 10)] = None
         df["c1"] = times
-        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
-        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=cformat)
+        df["c2"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
+        df["c3"] = pd.to_datetime(df["c1"], errors="coerce", format=format)
 
         value = "21/10/1900 01:19:01"
         r1, r2, r3 = timeliness(["c1", "c2", "c3"], timeFormat=format, df=df, value=value)
