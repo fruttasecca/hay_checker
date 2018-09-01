@@ -272,7 +272,6 @@ Shannon entropy of a column.
 
 ![alt text](figures/entropy/column.gif)
 
-
 ***method* metrics.entropy(column, df=None)**
 
 Arguments
@@ -281,6 +280,8 @@ Arguments
 |--------|-------------------------------------------------------------------------------------------------------------------------------|
 | column | Columns on which to run the metric                                                                                            |
 | df     | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
+
+Values null and NaN are ignored by this metric implementation
 
 Example
 
@@ -309,6 +310,8 @@ Arguments
 | when | First column on which to compute MI                                                                                           |
 | then | Second column on which to compute MI                                                                                          |
 | df   | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
+
+Values null and NaN are ignored by this metric implementation
 
 Example
 
@@ -344,6 +347,8 @@ Arguments
 | conditions | Conditions on which to filter data before applying the metric                                                                 |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
 
+When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted. 
+
 Example
 
 ```python
@@ -372,6 +377,8 @@ Arguments
 |------------|--------------------------------------------------------------------------------------------------------------------------------|
 | conditions | Conditions on which to run the metric                                                                                          |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later |
+
+When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted.
 
 Example
 
@@ -406,6 +413,8 @@ Arguments
 | having     | Conditions to apply to groups                                                                                                  |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later |
 
+When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted.
+
 Example
 ```python
 from haychecker.dhc.metrics import grouprule
@@ -421,6 +430,70 @@ Output
 Grouprule groupby 'title' where city='London' having count * > 1: 50.0
 ```
 ---
+
+### Task class
+
+Task class was introduced in order to save running time if different metrics need to be 
+run on the data. In this way partial results in common are reused saving 
+passes through the dataset.
+
+***class* task.Task(metrics_params=[], allow_casting=True)**
+
+Arguments
+
+|                |                                                                                                                                                                                                                                                                                                                                     |
+|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| metrics_params | List of _metrics, each metric is a dictionary mapping params ofthe metric to a value, as in the json config file                                                                                                                                                                                                                    |
+| allow_casting  | If a column not of the type of what it is evaluated against (i.e. a condition checkingfor column 'x' being gt 3.0, with the type of 'x' being string) should be casted to the type of the valueit is checked against. If casting is not allowed the previous example would provoke an error, (through anassertion); default is True |
+
+Example
+
+If in metric method call a dataframe df is not specified, a *Task* instance with 
+input parameters is returned.
+
+```python
+from haychecker.dhc.task import Task
+from haychecker.dhc.metrics import *
+
+# create an empty Task
+task = Task()
+
+# metric returns a Task instance without running it untill dataframe is passed
+task1 = completeness(["region", "reportsTo"])
+task2 = completeness(["city"])
+
+task.add(task1)
+task.add(task2)
+
+task1 = deduplication(["title", "city"])
+task2 = deduplication(["lastName"])
+
+task.add(task1)
+task.add(task2)
+
+# run all tasks contained in the task
+# in this way the optimizer does all checks to save running time
+result = task.run(df)
+
+# read the results, a list of dictionaries is returned, a dictionary corresponds to a task,
+# each dictionary containing score or scores for each task
+r1, r2 = result[0]["scores"]
+r3 = result[1]["scores"][0]
+
+print("Completeness region: {}, completeness reportsTo: {}, completeness city: {}".format(r1, r2, r3))
+
+r1, r2 = result[2]["scores"]
+r3 = result[3]["scores"][0]
+
+print("Deduplication title: {}, deduplication city: {}, deduplication lastName: {}".format(r1, r2, r3))
+
+```  
+Output 
+
+```text
+Completeness region: 57.14285714285714, completeness reportsTo: 85.71428571428571, completeness city: 100.0
+Deduplication title: 42.857142857142854, deduplication city: 71.42857142857143, deduplication lastName: 100.0
+```
 
 ## Authors
 
