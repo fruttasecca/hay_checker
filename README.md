@@ -1,18 +1,37 @@
 # hay checker
 
-A data quality tool
+A data quality tool.
+Haychecker provides both a script to be called by submitting it to spark-submit
+or to be run with the python3 interpreter, and a library.
+The script can be found in the root directory, named hay_checker.py, the library
+can be installed with pip either online or by running setup tools and creating
+a package installable with pip locally (the setup.py file can be found in the root directory).
+By submitting the script to spark-submit, spark will be used to import the data and perform computations, while
+by using the python interpreter spark will be used to import the data, and pandas to perform computations.
+
+The library has 2 main packages, chc and dhc, which respectively stand for centralized hay checker
+and distributed hay checker, they are basically two "symmetric" libraries themselves, with the same
+exact API. Those libraries are based on a single Task class, which is a container for metrics
+that will/can be computed later or on different dataframes, and a number of functions (metrics) which
+will either compute and return results when called or return a Task, to be later run or expanded by adding
+more metrics/tasks to it.
+
+The point of the Task class is to 1) allow defining things once, but to use those defined metrics
+multiple times, 2) trying to optimize/combine metrics that can be run together in a single call, instead of calling
+them one at a time, when possible.
+
 
 ## Getting Started
 
-These instructions will provide you a simple guide of how to use the tool and 
+These instructions will provide a simple guide on how to use the tool and 
 the prerequisites needed for both distributed and centralized versions of
  the *hay checker*
 
 ### Prerequisites
 
-What things you need to use the *hay checker* script or library
+What things you need to use *haychecker* (both script and library)
 
-Distributed version
+(requirements needed from the distributed side)
 
 ```
 hadoop
@@ -20,7 +39,7 @@ spark
 pyspark
 ```
 
-Centralized version
+(requirements needed from the centralized side)
 
 ```
 pandas
@@ -40,11 +59,13 @@ or
 python3 hay_checker.py --config <path to config.json>
 ```
 
-to use *distributed* or *centralized* versions, respectively.
+to use the *distributed* or *centralized* versions, respectively. 
+The distributed version will use spark for data importing and computation, the centralized  version
+will use spark for data importing and pandas for computation.
 
 **Input**
 
-A .json configuration file, where the following values must be provided:
+A .json configuration file, where the following values can be provided:
 
 |             |                                                                                                                                                                                                                                                 |
 |-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -135,7 +156,7 @@ For the centralized version all metric calls are identical, while import has the
 
 ### Completeness
 Measures how complete is the dataset by counting which entities are not 
-missing in a column or in the whole table.
+missing (Nan or Null/None) in a column or in the whole table.
 
 
 - column:
@@ -152,8 +173,8 @@ Arguments
 
 |         |                                                                                                                                |
 |---------|--------------------------------------------------------------------------------------------------------------------------------|
-| columns | Columns on which to run the metric, None to run the completenessmetric on the whole table.                                     |
-| df      | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later. |
+| columns | Columns on which to run the metric, None to run the completeness metric on the whole table.                                     |
+| df      | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later. |
 
 Example
 
@@ -186,8 +207,8 @@ Arguments
 
 |         |                                                                                                                                |
 |---------|--------------------------------------------------------------------------------------------------------------------------------|
-| columns | Columns on which to run the metric, None to run the deduplicationmetric on the whole table.                                    |
-| df      | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later  |
+| columns | Columns on which to run the metric, None to run the deduplication metric on the whole table.                                    |
+| df      | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later  |
 
 Example
 
@@ -204,7 +225,7 @@ Deduplication title: 42.857142857142854, deduplication city: 71.42857142857143
 ---
 ### Deduplication_approximated
 Deduplication metric implementation using approximated count of distinct values,
- much faster then the standard deduplication implementation.
+  faster then the standard deduplication implementation.
 
 ***method* metrics.deduplication_approximated(columns=None, df=None)**
 
@@ -212,7 +233,7 @@ Arguments
 
 |         |                                                                                                                               |
 |---------|-------------------------------------------------------------------------------------------------------------------------------|
-| columns | Columns on which to run the metric, None to run the deduplication_approximatedmetric on the whole table                       |
+| columns | Columns on which to run the metric, differently from deduplication, this cannot be run "on the whole table", checking deduplication at a row level, but only on 1 column at a time, meaning that the columns parameter cannot be None, and must always contain at least one column.                       |
 | df      | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
 
 Example
@@ -235,8 +256,8 @@ Reflects how up-to-date the dataset is with respect to the given date/time.
 ![alt text](figures/timeliness/column.gif)
 
 !
-In the centralized version of the library the [strftime](http://strftime.org/) directive 
-is used as date/time format argument, while in the distributed version a [simple date format](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html) is enough (e.g. "yyyy/MM/dd")
+In the centralized version of the library the [strftime](http://strftime.org/) directives
+are used to express the date/time format arguments, while in the distributed version the [simple date format](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html) directives are used.
 
 ***method* metrics.timeliness(columns, value, df=None, dateFormat=None, timeFormat=None)**
 
@@ -244,11 +265,11 @@ Arguments
 
 |            |                                                                                                                                                                                                                                         |
 |------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| columns    | Columns on which to run the metric                                                                                                                                                                                                      |
+| columns    | Columns on which to run the metric, columns of type string will be casted to timestamp using the dateFormat or timeFormat argument                                                                                                                                                                                                   |
 | value      | Value used to run the metric, confronting values in the specified columns against it                                                                                                                                                    |
-| dateFormat | Format in which the value (and values in columns, if they are of string type) are; usedif the value and columns contain dates as strings, or are of date or timestamp type. Either dateFormator timeFormat must be passed, but not both |
-| timeFormat | Format in which the value (and values in columns, if they are of string type) are; usedif the value and columns contain times as strings or are of timestamp type. Either dateFormator timeFormat must be passed, but not both          |
-| df         | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later                                                                                                           |
+| dateFormat | Format in which the value (and values in columns, if they are of string type) are; used to cast columns if they contain dates as strings. Either dateFormat or timeFormat must be passed, but not both|
+| timeFormat | Format in which the value (and values in columns, if they are of string type) are; used to cast columns if they contain dates as strings. Either dateFormat or timeFormat must be passed, but not both|
+| df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later                                                                                                           |
 
 Example
 
@@ -264,15 +285,17 @@ Timeliness birthDate with respect to date 1960/10/22: 71.42857142857143
 ---
 ### Freshness
 Measures how fresh is the dataset by taking the average distance of
- the tuples from the current date/time.
+ the tuples from the current date/time. Results are returned either in days or seconds, depending
+on what format is passed, dateFormat for days and timeFormat for seconds.
     
 - column
 
 ![alt text](figures/freshness/column.gif)
 
 !
-In the centralized version of the library the [strftime](http://strftime.org/) directive 
-is used as date/time format argument, while in the distributed version a [simple date format](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html) is enough (e.g. "yyyy/MM/dd")
+In the centralized version of the library the [strftime](http://strftime.org/) directives
+are used to express the date/time format arguments, while in the distributed version the [simple date format](https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html) directives are used.
+
 
     
 ***method* metrics.freshness(columns, df=None, dateFormat=None, timeFormat=None)**
@@ -281,9 +304,9 @@ Arguments
 
 |            |                                                                                                                                                                                                                                                                    |
 |------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| columns    | Columns on which to run the metric                                                                                                                                                                                                                                 |
-| dateFormat | Format in which the value (and values in columns, if they are of string type) are; used if the value and columns contain dates as strings, or are of date or timestamp type. Either dateFormat or timeFormat must be passed, but not both                            |
-| timeFormat | Format in which the values in columns are if those columns are of type string; otherwise they must be of type date or timestamp. Use this parameter if you are interested in a result in terms of days.Either dateFormat or timeFormat must be passed, but not both |
+| columns    | Columns on which to run the metric, columns of type string will be casted to timestamp using the dateFormat or timeFormat argument.                                                                                                                                                                                                                           |
+| dateFormat | Format in which the values in columns are if those columns are of type string; otherwise they must be of type date or timestamp. Use this parameter if you are interested in a result in terms of days. Either dateFormat or timeFormat must be passed, but not both. 
+| timeFormat | Format in which the values in columns are if those columns are of type string; otherwise they must be of type timestamp. Use this parameter if you are interested in results in terms of seconds. Either dateFormat or timeFormat must be passed, but not both. |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later                                                                                                                                      |
 
 
@@ -314,9 +337,9 @@ Arguments
 |        |                                                                                                                               |
 |--------|-------------------------------------------------------------------------------------------------------------------------------|
 | column | Columns on which to run the metric                                                                                            |
-| df     | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
+| df     | Dataframe on which to run the metric, None to have this function return a Task instance containin gthis metric to be run later |
 
-Values null and NaN are ignored by this metric implementation
+Null and NaN are ignored for computing results.
 
 Example
 
@@ -344,9 +367,9 @@ Arguments
 |------|-------------------------------------------------------------------------------------------------------------------------------|
 | when | First column on which to compute MI                                                                                           |
 | then | Second column on which to compute MI                                                                                          |
-| df   | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
+| df   | Dataframe on which to run the metric, None to have this function return a Task instance containin gthis metric to be run later |
 
-Values null and NaN are ignored by this metric implementation
+Null and NaN are ignored for computing results (pairs containing Nans or Nulls are discarded).
 
 Example
 
@@ -362,9 +385,8 @@ Mutual information title/salary: 0.7963116401738128
 ---
 ### Constraint
 
-Measures how many tuples satisfy/break a given constraint. 
-The constraints are functional dependencies. 
-A functional dependency is a dependency where values of one
+After filtering data on conditions, measures how many tuples satisfy/break a given functional dependency,
+a functional dependency is a dependency where values of one
  set of columns imply values of another set of columns.
  
 - table
@@ -377,12 +399,14 @@ Arguments
 
 |            |                                                                                                                               |
 |------------|-------------------------------------------------------------------------------------------------------------------------------|
-| when       | A list of columns in the df to use as the precondition of a functional constraint. No columnshould be in both when and then   |
-| then       | A list of columns in the df to use as the postcondition of a functional constraint. No columnshould be in both when and then  |
+| when       | A list of columns in the df to use as the precondition of a functional constraint. No column should be in both when and then   |
+| then       | A list of columns in the df to use as the postcondition of a functional constraint. No column should be in both when and then  |
 | conditions | Conditions on which to filter data before applying the metric                                                                 |
-| df         | Dataframe on which to run the metric, None to have this function return a Task instance containingthis metric to be run later |
+| df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later |
 
-When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted. 
+If any condition would lead to a comparison between a column of string type and a number, if casting
+is allowed (allow_casting in the Task class constructor, or inferSchema in the config.json file), there will be
+an attempt to cast the column to a numeric type.
 
 Example
 
@@ -413,7 +437,10 @@ Arguments
 | conditions | Conditions on which to run the metric                                                                                          |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later |
 
-When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted.
+If any condition would lead to a comparison between a column of string type and a number, if casting
+is allowed (allow_casting in the Task class constructor, or inferSchema in the config.json file), there will be
+an attempt to cast the column to a numeric type.
+
 
 Example
 
@@ -431,7 +458,9 @@ Rule salary>2100: 28.57142857142857
 ---
 ### Grouprule check
 
-Measures how many values satisfy a rule
+Measures how many values satisfy a rule by
+filtering data on conditions, and then checking the percentage of groups passing the
+having conditions, which are conditions on aggregations on the groups.
 
 - table 
 
@@ -448,7 +477,9 @@ Arguments
 | having     | Conditions to apply to groups                                                                                                  |
 | df         | Dataframe on which to run the metric, None to have this function return a Task instance containing this metric to be run later |
 
-When in a condition a numeric value is compared with strings from the dataframe, a casting on strings is attempted.
+If any condition would lead to a comparison between a column of string type and a number, if casting
+is allowed (allow_casting in the Task class constructor, or inferSchema in the config.json file), there will be
+an attempt to cast the column to a numeric type.
 
 Example
 ```python
@@ -467,10 +498,15 @@ Grouprule groupby 'title' where city='London' having count * > 1: 50.0
 ---
 
 ### Task class
+The Task class acts as a container for metrics, allowing to store them and add more of them programmatically,
+a Task can be either instantiated empty (Task()) or by passing a list of metrics, where each metric is a dict
+defining parameters as in the config.json file. 
+Tasks can be added to other tasks, (basically appending the metrics contained in one to the other); moreover, a 
+metric function called without a dataframe will return a Task containing the metric itself, effectively
+allowing to add more metrics to a Task instance in a natural way.
+Metrics that can be run in the same call/aggregation/pass on data will be run in such a way, otherwise
+they will be run internally one at a time.
 
-Task class was introduced in order to save running time if different metrics need to be 
-run on the data. In this way partial results in common are reused saving 
-passes through the dataset.
 
 ***class* task.Task(metrics_params=[], allow_casting=True)**
 
@@ -478,12 +514,12 @@ Arguments
 
 |                |                                                                                                                                                                                                                                                                                                                                     |
 |----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| metrics_params | List of _metrics, each metric is a dictionary mapping params ofthe metric to a value, as in the json config file                                                                                                                                                                                                                    |
-| allow_casting  | If a column not of the type of what it is evaluated against (i.e. a condition checkingfor column 'x' being gt 3.0, with the type of 'x' being string) should be casted to the type of the valueit is checked against. If casting is not allowed the previous example would provoke an error, (through anassertion); default is True |
+| metrics_params | List of metrics, each metric is a dictionary mapping params of the metric to a value, as in the json config file                                                                                                                                                                                                                    |
+| allow_casting  | If a column not of the type of what it is evaluated against (i.e. a condition checking for column 'x' being gt 3.0, with the type of 'x' being string) should be casted to the type of the value it is checked against. If casting is not allowed the previous example would provoke an error, (through an assertion); default is True |
 
 Example
 
-If in metric method call a dataframe df is not specified, a *Task* instance with 
+If in a metric function call a dataframe df is not specified, a *Task* instance with 
 input parameters is returned.
 
 ```python
@@ -493,25 +529,26 @@ from haychecker.dhc.metrics import *
 # create an empty Task
 task = Task()
 
-# metric returns a Task instance without running it untill dataframe is passed
+# the metric function returns a Task instance because it has not been called with a df
 task1 = completeness(["region", "reportsTo"])
 task2 = completeness(["city"])
 
 task.add(task1)
 task.add(task2)
 
-task1 = deduplication(["title", "city"])
-task2 = deduplication(["lastName"])
+# we can also add tasks is a more natural and concise way
+# the add operator also allows chaining
+task.add(deduplication(["title", "city"]))
+task.add(deduplication(["lastName"]))
 
-task.add(task1)
-task.add(task2)
 
-# run all tasks contained in the task
-# in this way the optimizer does all checks to save running time
+# run all metrics contained in the task 
+# the method will return a list of dictionaries which are the metrics 
+# contained in the Task instance, where each metric has also a "scores" field added, containing 
+# related scores
 result = task.run(df)
 
-# read the results, a list of dictionaries is returned, a dictionary corresponds to a task,
-# each dictionary containing score or scores for each task
+
 r1, r2 = result[0]["scores"]
 r3 = result[1]["scores"][0]
 
