@@ -269,11 +269,11 @@ def timeliness(columns, value, df=None, dateFormat=None, timeFormat=None):
     :param value: Value used to run the metric, confronting values in the specified columns against it.
     :type value: str
     :param dateFormat: Format in which the value (and values in columns, if they are of string type) are; used
-    if the value and columns contain dates as strings, or are of date or timestamp type. Either dateFormat
+    to cast columns if they contain dates as strings. Either dateFormat
     or timeFormat must be passed, but not both. Use http://strftime.org/ directives to express formats.
     :type dateFormat: str
     :param timeFormat: Format in which the value (and values in columns, if they are of string type) are; used
-    if the value and columns contain times as strings or are of timestamp type. Either dateFormat
+    to cast columns if they contain dates as strings. Either dateFormat
     or timeFormat must be passed, but not both. Use http://strftime.org/ directives to express formats.
     :type timeFormat: str
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
@@ -415,7 +415,7 @@ def freshness(columns, df=None, dateFormat=None, timeFormat=None):
     using the dateFormat or timeFormat argument.
     :type columns: list
     :param dateFormat: Format in which the values in columns are if those columns are of type string; otherwise they must
-    be of type date or timestamp. Use this parameter if you are interested in a result in terms of days.
+    be of type timestamp. Use this parameter if you are interested in a result in terms of days.
     Either dateFormat or timeFormat must be passed, but not both.
     Use http://strftime.org/ directives to express formats.
     :type dateFormat: str

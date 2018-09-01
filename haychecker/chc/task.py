@@ -94,6 +94,7 @@ class Task(_Task):
     def _perform_run_checks(metrics, df, allow_casting):
         """
         Perform run time parameter checking.
+
         :param metrics:
         :type metrics: list
         :param df:

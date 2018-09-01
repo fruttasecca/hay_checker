@@ -13,8 +13,11 @@ def _completeness_todo(columns, df):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param columns:
+    :type columns: list
     :param df:
+    :type df: DataFrame
     :return: Pyspark columns representing what to compute.
     """
     if columns is None:
@@ -28,12 +31,16 @@ def completeness(columns=None, df=None):
     If a df is passed, the completeness metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param columns: Columns on which to run the metric, None to run the completeness
     metric on the whole table.
+    :type columns: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
 
     # make a dict representing the parameters
@@ -51,8 +58,11 @@ def _deduplication_todo(columns, df):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param columns:
+    :type columns: list
     :param df:
+    :type df: DataFrame
     :return: Pyspark columns representing what to compute.
     """
     if columns is None:
@@ -69,12 +79,16 @@ def deduplication(columns=None, df=None):
     If a df is passed, the deduplication metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param columns: Columns on which to run the metric, None to run the deduplication
-    metric on the whole table.
+    metric on the whole table (deduplication on rows).
+    :type columns: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "deduplication"}
@@ -91,8 +105,11 @@ def _deduplication_approximated_todo(columns, df):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param columns:
+    :type columns: list
     :param df:
+    :type df: DataFrame
     :return: Pyspark columns representing what to compute.
     """
     if columns is None:
@@ -103,17 +120,22 @@ def _deduplication_approximated_todo(columns, df):
     return todo
 
 
-def deduplication_approximated(columns=None, df=None):
+def deduplication_approximated(columns, df=None):
     """
     If a df is passed, the deduplication_approximated metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
-    :param columns: Columns on which to run the metric, None to run the deduplication_approximated
-    metric on the whole table.
+    Differently from deduplication, here columns must be specified (deduplication_approximated does not
+    work on a whole row level).
+
+    :param columns: Columns on which to run the metric.
+    :type columns: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "deduplication_approximated"}
@@ -132,8 +154,11 @@ def contains_date(format):
     (It currently check if the string contains tokens from the simpledateformat
     https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
     that represent, years, months, days).
+
     :param format: A string format representing a simple date format.
+    :type format: str
     :return: True if values part of a date are contained in the format string.
+    :rtype: bool
     """
     part_of_date_tokens = "GyYMwWdDFEu"
     for token in part_of_date_tokens:
@@ -146,11 +171,17 @@ def _timeliness_todo(columns, value, df, dateFormat=None, timeFormat=None):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param columns:
+    :type columns: list
     :param value
+    :type value: str
     :param df:
+    :type df: DataFrame
     :param dateFormat:
+    :type dateFormat: str
     :param timeFormat:
+    :type timeFormat: str
     :return: Pyspark columns representing what to compute.
     """
     assert (dateFormat is None or timeFormat is None) and (
@@ -224,18 +255,29 @@ def timeliness(columns, value, df=None, dateFormat=None, timeFormat=None):
     If a df is passed, the timeliness metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
-    :param columns: Columns on which to run the metric
+    Use https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html directives to express formats.
+
+    :param columns: Columns on which to run the metric, columns of type string will be casted to timestamp
+    using the dateFormat or timeFormat argument.
+    :type columns: list
     :param value: Value used to run the metric, confronting values in the specified columns against it.
+    :type value: str
     :param dateFormat: Format in which the value (and values in columns, if they are of string type) are; used
-    if the value and columns contain dates as strings, or are of date or timestamp type. Either dateFormat
-    or timeFormat must be passed, but not both.
+    to cast columns if they contain dates as strings. Either dateFormat
+    or timeFormat must be passed, but not both. Use https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+    directives to express formats.
+    :type dateFormat: str
     :param timeFormat: Format in which the value (and values in columns, if they are of string type) are; used
-    if the value and columns contain times as strings or are of timestamp type. Either dateFormat
-    or timeFormat must be passed, but not both.
+    to cast columns if they contain dates as strings. Either dateFormat
+    or timeFormat must be passed, but not both. Use https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html
+    directives to express formats.
+    :type timeFormat: str
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     assert (dateFormat is None or timeFormat is None) and (
             not dateFormat is None or not timeFormat is None), "Pass either a dateFormat or a timeFormat, not both."
@@ -256,10 +298,15 @@ def _freshness_todo(columns, df, dateFormat=None, timeFormat=None):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param columns:
+    :type columns: list
     :param df:
+    :type df: DataFrame
     :param dateFormat:
+    :type dateFormat: str
     :param timeFormat:
+    :type timeFormat: str
     :return: Pyspark columns representing what to compute.
     """
     assert (dateFormat is None or timeFormat is None) and (
@@ -332,17 +379,27 @@ def freshness(columns, df=None, dateFormat=None, timeFormat=None):
     If a df is passed, the freshness metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
-    :param columns: Columns on which to run the metric
+    Use https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html directives to express formats.
+
+    :param columns: Columns on which to run the metric, columns of type string will be casted to timestamp
+    using the dateFormat or timeFormat argument.
+    :type columns: list
     :param dateFormat: Format in which the values in columns are if those columns are of type string; otherwise they must
     be of type date or timestamp. Use this parameter if you are interested in a result in terms of days.
     Either dateFormat or timeFormat must be passed, but not both.
+    Use https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html directives to express formats.
+    :type dateFormat: str
     :param timeFormat: Format in which the values in columns are if those columns are of type string; otherwise they must
-    be of type timestamp. Use this parameter if you are interested in a result totalling less than a day, shown
-    in a format of HH:mm:ss. Either dateFormat or timeFormat must be passed, but not both.
+    be of type timestamp. Use this parameter if you are interested in results in terms of seconds.
+    Either dateFormat or timeFormat must be passed, but not both.
+    Use https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html directives to express formats.
+    :type timeFormat: str
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "freshness", "columns": columns}
@@ -358,6 +415,13 @@ def freshness(columns, df=None, dateFormat=None, timeFormat=None):
 
 
 def _and_conditions_as_columns(conditions):
+    """
+    Return conditions as an "and" concatenation of columns.
+
+    :param conditions:
+    :type conditions: list
+    :return:
+    """
     # add first condition
     cond = conditions[0]
     if "casted_to" in cond:
@@ -396,12 +460,14 @@ def _and_conditions_as_columns(conditions):
     return result
 
 
-def andcheckjoin(then):
+def _andcheckjoin(then):
     """
     Returns a column which is the and concatenation of different checks,
     1 for each column in 'then', checking for each distinct_then%s, where %s is a column
     in 'then', to be equal to 1.
+
     :param then: 'then' columns of the constraint metric
+    :type then: list
     :return:
     """
     res = col("distinct_then%s" % then[0]) == 1
@@ -414,10 +480,15 @@ def _constraint_todo(when, then, conditions, df):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param when:
+    :type when: list
     :param then:
+    :type then: list
     :param conditions:
+    :type conditions: list
     :param df:
+    :type df: DataFrame
     :return: Pyspark columns representing what to compute.
     """
     todo = df
@@ -437,7 +508,7 @@ def _constraint_todo(when, then, conditions, df):
     # given the new 'table', aggregate over it, summing over all total rows to get the total number of filtered
     # rows, and summing the count only of groups that have one distinct then value
     todo = todo.agg(sum("metrics_check_count_1").alias("all_filtered"), sum(
-        pyspark.sql.functions.when(andcheckjoin(then), col("metrics_check_count_1")).otherwise(0)).alias(
+        pyspark.sql.functions.when(_andcheckjoin(then), col("metrics_check_count_1")).otherwise(0)).alias(
         "respecting"))
 
     # get the ratio between the tuples respecting the constraint and the total, where total is the number of
@@ -451,15 +522,21 @@ def constraint(when, then, conditions=None, df=None):
     If a df is passed, the constraint metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param when: A list of columns in the df to use as the precondition of a functional constraint. No column
     should be in both when and then.
+    :type when: list
     :param then: A list of columns in the df to use as the postcondition of a functional constraint. No column
     should be in both when and then.
+    :type then: list
     :param conditions: Conditions on which to filter data before applying the metric.
+    :type conditions: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "constraint", "when": when, "then": then}
@@ -476,7 +553,9 @@ def _rule_todo(conditions):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param conditions:
+    :type conditions: list
     :return: Pyspark columns representing what to compute.
     """
     filtering_conditions = _and_conditions_as_columns(conditions)
@@ -489,11 +568,14 @@ def rule(conditions, df=None):
     If a df is passed, the rule metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param conditions: Conditions on which to run the metric.
-    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    :type conditions: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
-    run later.
+    :type df: DataFrame
+    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "rule", "conditions": conditions}
@@ -505,6 +587,13 @@ def rule(conditions, df=None):
 
 
 def _having_aggregations_as_columns(condition):
+    """
+    Return an "having" aggregation as a column.
+
+    :param condition:
+    :type condition: dict
+    :return:
+    """
     column = condition["column"]
     aggregator = condition["aggregator"] if "aggregator" in condition else None
     if "casted_to" in condition:
@@ -539,6 +628,13 @@ def _having_aggregations_as_columns(condition):
 
 
 def _having_constraints_as_column(having):
+    """
+    Return "having" conditions as an "and" concatenation of columns.
+
+    :param having:
+    :type having: list
+    :return:
+    """
     # add first condition
     index = 0
     cond = having[0]
@@ -566,10 +662,15 @@ def _grouprule_todo(columns, conditions, having, df):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param columns:
+    :type columns: list
     :param conditions:
+    :type conditions: list
     :param having:
+    :type having: list
     :param df:
+    :type df: DataFrame
     :return: Pyspark columns representing what to compute.
     """
     todo = df
@@ -599,16 +700,21 @@ def _grouprule_todo(columns, conditions, having, df):
 
 def grouprule(columns, having, conditions=None, df=None):
     """
-    If a df is passed, the rule metric will be run and result returned
+    If a df is passed, the groupRule metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param columns: Columns on which to run the metric, grouping data.
     :param conditions: Conditions on which to run the metric, filtering data before grouping, can be None.
+    :type conditions: list
     :param having: Conditions to apply to groups.
+    :type having: list
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "groupRule", "columns": columns, "having": having}
@@ -625,8 +731,11 @@ def _entropy_todo(column, df):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param column:
+    :type column: str/int
     :param df:
+    :type df: DataFrame
     :return: Pyspark columns representing what to compute.
     """
     # group on that column
@@ -647,11 +756,15 @@ def entropy(column, df=None):
     If a df is passed, the entropy metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param column: Column on which to run the metric.
+    :type column: str/int
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "entropy", "column": column}
@@ -666,9 +779,13 @@ def _mutual_info_todo(when, then, df):
     """
     Returns what (columns, as in spark columns) to compute to get the results requested by
     the parameters.
+
     :param when:
+    :type when: str/int
     :param then:
+    :type then: str/int
     :param df:
+    :type df: DataFrame
     :return: Pyspark columns representing what to compute.
     """
     # group on the pair of columns, count occurrences
@@ -699,12 +816,17 @@ def mutual_info(when, then, df=None):
     If a df is passed, the mutual_info metric will be run and result returned
     as a list of scores, otherwise an instance of the Task class containing this
     metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+
     :param when: First column on which to compute MI.
+    :type when: str/int
     :param then: Second column on which to compute MI.
+    :type then: str/int
     :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing
     this metric to be run later.
+    :type df: DataFrame
     :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be
     run later.
+    :rtype: list/Task
     """
     # make a dict representing the parameters
     params = {"metric": "mutual_info", "when": when, "then": then}
