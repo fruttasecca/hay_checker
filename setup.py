@@ -17,4 +17,11 @@ setup(
             "Programming Language :: Python :: 3",
             "License :: OSI Approved :: MIT License",
         ],
+    install_requires=[
+        "pyspark>=2.3.1",
+        "pandas>=0.23.4",
+        "numpy>=1.15.1",
+        "scikit-learn>=0.19.2",
+        "requests>=2.19.1"
+    ]
 )
