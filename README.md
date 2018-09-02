@@ -33,7 +33,9 @@ them one at a time, when possible.
 + dist, which contain a source archive and a built distribution (.whl), installable with "pip3 install <name>.tar.gz" or "pip3 install <name>.whl"
 + other stuff (license, figures, readme)
 
-##### Installation (currently on test PyPI server)
+##### Installation 
+(check the setup.py file for what version of the requirements is going to be installed, we
+set up kinda recent versions to be required of pyspark, pandas, etc.)
 + pip3 install haychecker, to download from PyPI or
 + pip3 install dist/haychecker-\<version\>.tar.gz, or
 + pip3 install dist/haychecker-\<version\>-py3-none-any.whl
