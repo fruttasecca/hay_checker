@@ -1,0 +1,575 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>haychecker.dhc package &mdash; haychecker 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> haychecker
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">haychecker.dhc package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-haychecker.dhc.metrics">haychecker.dhc.metrics module</a></li>
+<li><a class="reference internal" href="#module-haychecker.dhc.task">haychecker.dhc.task module</a></li>
+<li><a class="reference internal" href="#module-haychecker.dhc">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">haychecker</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>haychecker.dhc package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/haychecker.dhc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="haychecker-dhc-package">
+<h1>haychecker.dhc package<a class="headerlink" href="#haychecker-dhc-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-haychecker.dhc.metrics">
+<span id="haychecker-dhc-metrics-module"></span><h2>haychecker.dhc.metrics module<a class="headerlink" href="#module-haychecker.dhc.metrics" title="Permalink to this headline">¶</a></h2>
+<p>Module containing metrics for the distributed version of hay_checker.</p>
+<dl class="function">
+<dt id="haychecker.dhc.metrics.completeness">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">completeness</code><span class="sig-paren">(</span><em>columns=None</em>, <em>df=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#completeness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.completeness" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the completeness metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>columns</strong> (<em>list</em>) – Columns on which to run the metric, None to run the completeness
+metric on the whole table.</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be
+run later.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.constraint">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">constraint</code><span class="sig-paren">(</span><em>when</em>, <em>then</em>, <em>conditions=None</em>, <em>df=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.constraint" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the constraint metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>when</strong> (<em>list</em>) – A list of columns in the df to use as the precondition of a functional constraint. No column
+should be in both when and then.</li>
+<li><strong>then</strong> (<em>list</em>) – A list of columns in the df to use as the postcondition of a functional constraint. No column
+should be in both when and then.</li>
+<li><strong>conditions</strong> (<em>list</em>) – Conditions on which to filter data before applying the metric.</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be
+run later.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.deduplication">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">deduplication</code><span class="sig-paren">(</span><em>columns=None</em>, <em>df=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#deduplication"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.deduplication" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the deduplication metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>columns</strong> (<em>list</em>) – Columns on which to run the metric, None to run the deduplication
+metric on the whole table (deduplication on rows).</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be
+run later.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.deduplication_approximated">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">deduplication_approximated</code><span class="sig-paren">(</span><em>columns</em>, <em>df=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#deduplication_approximated"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.deduplication_approximated" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the deduplication_approximated metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+Differently from deduplication, here columns must be specified (deduplication_approximated does not
+work on a whole row level).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>columns</strong> (<em>list
+:param df: Dataframe on which to run the metric</em><em>, </em><em>None to have this function return a Task instance containing</em>) – Columns on which to run the metric.</td>
+</tr>
+</tbody>
+</table>
+<p>this metric to be run later.
+:type df: DataFrame
+:return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</p>
+<blockquote>
+<div>run later.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list/Task</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.entropy">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">entropy</code><span class="sig-paren">(</span><em>column</em>, <em>df=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#entropy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.entropy" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the entropy metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>column</strong> (<em>str/int</em>) – Column on which to run the metric.</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be
+run later.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.freshness">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">freshness</code><span class="sig-paren">(</span><em>columns</em>, <em>df=None</em>, <em>dateFormat=None</em>, <em>timeFormat=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#freshness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.freshness" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the freshness metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+Use <a class="reference external" href="https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html</a> directives to express formats.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>columns</strong> (<em>list</em>) – Columns on which to run the metric, columns of type string will be casted to timestamp
+using the dateFormat or timeFormat argument.</li>
+<li><strong>dateFormat</strong> (<em>str</em>) – Format in which the values in columns are if those columns are of type string; otherwise they must
+be of type date or timestamp. Use this parameter if you are interested in a result in terms of days.
+Either dateFormat or timeFormat must be passed, but not both.
+Use <a class="reference external" href="https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html</a> directives to express formats.</li>
+<li><strong>timeFormat</strong> (<em>str</em>) – Format in which the values in columns are if those columns are of type string; otherwise they must
+be of type timestamp. Use this parameter if you are interested in results in terms of seconds.
+Either dateFormat or timeFormat must be passed, but not both.
+Use <a class="reference external" href="https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html</a> directives to express formats.</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be
+run later.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.grouprule">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">grouprule</code><span class="sig-paren">(</span><em>columns</em>, <em>having</em>, <em>conditions=None</em>, <em>df=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#grouprule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.grouprule" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the groupRule metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>columns</strong> – Columns on which to run the metric, grouping data.</li>
+<li><strong>conditions</strong> (<em>list</em>) – Conditions on which to run the metric, filtering data before grouping, can be None.</li>
+<li><strong>having</strong> (<em>list</em>) – Conditions to apply to groups.</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be
+run later.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.mutual_info">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">mutual_info</code><span class="sig-paren">(</span><em>when</em>, <em>then</em>, <em>df=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#mutual_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.mutual_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the mutual_info metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>when</strong> (<em>str/int</em>) – First column on which to compute MI.</li>
+<li><strong>then</strong> (<em>str/int</em>) – Second column on which to compute MI.</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be
+run later.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.rule">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">rule</code><span class="sig-paren">(</span><em>conditions</em>, <em>df=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#rule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.rule" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the rule metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>conditions</strong> (<em>list</em>) – Conditions on which to run the metric.</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="haychecker.dhc.metrics.timeliness">
+<code class="descclassname">haychecker.dhc.metrics.</code><code class="descname">timeliness</code><span class="sig-paren">(</span><em>columns</em>, <em>value</em>, <em>df=None</em>, <em>dateFormat=None</em>, <em>timeFormat=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/metrics.html#timeliness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.metrics.timeliness" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a df is passed, the timeliness metric will be run and result returned
+as a list of scores, otherwise an instance of the Task class containing this
+metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).
+Use <a class="reference external" href="https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html</a> directives to express formats.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>columns</strong> (<em>list</em>) – Columns on which to run the metric, columns of type string will be casted to timestamp
+using the dateFormat or timeFormat argument.</li>
+<li><strong>value</strong> (<em>str</em>) – Value used to run the metric, confronting values in the specified columns against it.</li>
+<li><strong>dateFormat</strong> (<em>str</em>) – Format in which the value (and values in columns, if they are of string type) are; used
+to cast columns if they contain dates as strings. Either dateFormat
+or timeFormat must be passed, but not both. Use <a class="reference external" href="https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html</a>
+directives to express formats.</li>
+<li><strong>timeFormat</strong> (<em>str</em>) – Format in which the value (and values in columns, if they are of string type) are; used
+to cast columns if they contain dates as strings. Either dateFormat
+or timeFormat must be passed, but not both. Use <a class="reference external" href="https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html">https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html</a>
+directives to express formats.</li>
+<li><strong>df</strong> (<em>DataFrame</em>) – Dataframe on which to run the metric, None to have this function return a Task instance containing
+this metric to be run later.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Either a list of scores or a Task instance containing this metric (with these parameters) to be
+run later.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/Task</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-haychecker.dhc.task">
+<span id="haychecker-dhc-task-module"></span><h2>haychecker.dhc.task module<a class="headerlink" href="#module-haychecker.dhc.task" title="Permalink to this headline">¶</a></h2>
+<p>Class extending the _Task class from the common
+scripts. It contains metrics that can be run
+on different data.</p>
+<dl class="class">
+<dt id="haychecker.dhc.task.Task">
+<em class="property">class </em><code class="descclassname">haychecker.dhc.task.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>metrics_params=[]</em>, <em>allow_casting=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/task.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.task.Task" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">haychecker._common._task._Task</span></code></p>
+<p>Class to contain defined metrics to run them on different data and/or at different times.
+An instance of it can contain any number of metrics to be run, trying
+to run them together/on the same pass on the data instead of one at a time when possible.
+Other tasks can be added to a Task, or
+metrics as a dict describing the metric can be added to a task, or a list of those metrics.
+Once run on a df, it returns a list of results, which are the list of contained metrics (in the same order)
+with a score field added for each metric, containing results/scores of that metric.</p>
+<dl class="method">
+<dt id="haychecker.dhc.task.Task.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/haychecker/dhc/task.html#Task.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#haychecker.dhc.task.Task.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each metric check its parameters for run time correctness (i.e. column with those name
+existing in the df, etc.), then perform the required computations, return results as a list of
+dictionaries identical to the metrics contained in the task, each with a field “scores” added, mapped
+to a list of scores related to the metric.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>df</strong> (<em>DataFrame</em>) – DataFrame</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">List of metrics with their scores added as a field.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-haychecker.dhc">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-haychecker.dhc" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Jacopo Gobbi, Kateryna Konotopska.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0.1',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
