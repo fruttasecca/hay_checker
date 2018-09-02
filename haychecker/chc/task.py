@@ -29,12 +29,12 @@ class Task(_Task):
         stuff to compute if any metric parameters dictionary is passed.
 
         :param metrics_params: List of _metrics, each metric is a dictionary mapping params of
-        the metric to a value, as in the json config file.
+            the metric to a value, as in the json config file.
         :type metrics_params: list
         :param allow_casting: If a column not of the type of what it is evaluated against (i.e. a condition checking
-        for column 'x' being gt 3.0, with the type of 'x' being string) should be casted to numeric.
-        If casting is not allowed the previous example would provoke an error, (through an
-        assertion); default is True.
+            for column 'x' being gt 3.0, with the type of 'x' being string) should be casted to numeric.
+            If casting is not allowed the previous example would provoke an error, (through an
+            assertion); default is True.
         :type allow_casting: bool
         """
         super().__init__(metrics_params)
