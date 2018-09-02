@@ -18,7 +18,7 @@ class _Task(object):
         the program if any incorrectness is met.
 
         :param metrics_params: List of metrics, each metric is a dictionary mapping params of
-        the metric to a value, as in the json config file.
+            the metric to a value, as in the json config file.
         :type metrics_params: list
         """
         Config._process_metrics(metrics_params)
@@ -29,10 +29,11 @@ class _Task(object):
         Method that must be implemented by classes extending _Task, to run the metrics on the specified df.
         Eventual checks on the existence of columns with a certain name, format of values etc, are left to this method,
         same for checks on the df, like the type of columns, etc.
+
         :param df: Dataframe on which to run the task.
         :type df: DataFrame
         :return: A list of metrics that is the same as the metrics contained in the instance of this
-         Task class, each metric will have new field named 'scores', containing results related to that metric.
+            Task class, each metric will have new field named 'scores', containing results related to that metric.
         """
         raise NotImplementedError
 
