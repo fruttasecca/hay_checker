@@ -1,6 +1,7 @@
 # hay checker 
 
 A data quality tool ([docs](https://fruttasecca.github.io/hay_checker/html/index.html)).
+
 Haychecker provides both a script to be called by submitting it to spark-submit
 or to be run with the python3 interpreter, and a library.
 The script can be found in the root directory, named hay_checker.py, the library
