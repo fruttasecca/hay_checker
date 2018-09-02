@@ -1,6 +1,6 @@
-# hay checker
+# hay checker 
 
-A data quality tool.
+A data quality tool ([docs](https://fruttasecca.github.io/hay_checker/html/index.html)).
 Haychecker provides both a script to be called by submitting it to spark-submit
 or to be run with the python3 interpreter, and a library.
 The script can be found in the root directory, named hay_checker.py, the library
@@ -26,6 +26,7 @@ them one at a time, when possible.
 + haychecker, (directory with source)
 + run_tests.sh (to run all tests, which are in haychecker/test)
 + hay_checker.py (the script that can be either submitted to spark or run in python3)
++ docs (documentation)
 + examples (examples with source)
 + setup.py (setup script for setuptools)
 + dist, which contain a source archive and a built distribution (.whl), installable with "pip3 install <name>.tar.gz" or "pip3 install <name>.whl"
@@ -35,6 +36,12 @@ them one at a time, when possible.
 + pip3 install haychecker, to download from PyPI or
 + pip3 install dist/haychecker-\<version\>.tar.gz, or
 + pip3 install dist/haychecker-\<version\>-py3-none-any.whl
+
+#### Documentation
+Docs can be found [at this project github page](https://fruttasecca.github.io/hay_checker/html/index.html), the
+same docs can be found in the directory "docs" of the project. 
+Examples also has some examples with source code, but the README should suffice to give
+a general know-how.
 
 ## Getting Started
 
