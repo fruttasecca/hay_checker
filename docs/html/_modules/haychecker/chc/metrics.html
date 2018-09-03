@@ -1,0 +1,1157 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>haychecker.chc.metrics &mdash; haychecker 0.0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> haychecker
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">haychecker</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>haychecker.chc.metrics</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for haychecker.chc.metrics</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module containing metrics for the centralized version of hay_checker.</span>
+<span class="sd">Some functions parameters are unused, they have been kept like this to allow</span>
+<span class="sd">easier code evolution.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="k">import</span> <span class="n">mutual_info_score</span>
+
+<span class="kn">from</span> <span class="nn">haychecker.chc</span> <span class="k">import</span> <span class="n">task</span>
+
+
+<span class="k">def</span> <span class="nf">_completeness_todo</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns what to compute for each column in dict form, given the metric parameters.</span>
+
+<span class="sd">    :param columns:</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param df:</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Dict containing what to run (pandas functions names or named lambdas) for each column.</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">todo</span>
+
+
+<div class="viewcode-block" id="completeness"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.completeness">[docs]</a><span class="k">def</span> <span class="nf">completeness</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the completeness metric will be run and results returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+
+<span class="sd">    :param columns: Columns on which to run the metric, None to run the completeness</span>
+<span class="sd">    metric on the whole table.</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">    this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">    run later.</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;completeness&quot;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;columns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">columns</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_deduplication_todo</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns what to compute for each column in dict form, given the metric parameters.</span>
+
+<span class="sd">    :param columns:</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param df:</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Dict containing what to run (pandas functions names or named lambdas) for each column.</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;nunique&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">todo</span>
+
+
+<div class="viewcode-block" id="deduplication"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.deduplication">[docs]</a><span class="k">def</span> <span class="nf">deduplication</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the deduplication metric will be run and result returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+
+<span class="sd">    :param columns: Columns on which to run the metric, None to run the deduplication</span>
+<span class="sd">        metric on the whole table.</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">        this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">        run later.</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;deduplication&quot;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">columns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;columns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">columns</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_contains_date</span><span class="p">(</span><span class="nb">format</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if a format contains tokens related to date.</span>
+
+<span class="sd">    :param format:</span>
+<span class="sd">    :type format: str</span>
+<span class="sd">    :return: True if format contains tokens related to date, false otherwise.</span>
+<span class="sd">    :rtype: boolean</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">part_of_date_tokens</span> <span class="o">=</span> <span class="s2">&quot;aAwdbBmyYjUW&quot;</span>
+    <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">part_of_date_tokens</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="ow">in</span> <span class="nb">format</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">_to_datetime_cached</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">format</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transform a series of strings (dates) to datetimes, with a dict</span>
+<span class="sd">    to cache results.</span>
+
+<span class="sd">    :param s:</span>
+<span class="sd">    :param format:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dates</span> <span class="o">=</span> <span class="p">{</span><span class="n">date</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">date</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span> <span class="k">for</span> <span class="n">date</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">()}</span>
+    <span class="n">dates</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">NaN</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">dates</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_set_year_month_day</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">year</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">year</span><span class="p">,</span>
+         <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">month</span><span class="p">,</span>
+         <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="n">day</span><span class="p">,</span>
+         <span class="s2">&quot;hour&quot;</span><span class="p">:</span> <span class="n">series</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span>
+         <span class="s2">&quot;minute&quot;</span><span class="p">:</span> <span class="n">series</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span>
+         <span class="s2">&quot;second&quot;</span><span class="p">:</span> <span class="n">series</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">second</span>
+         <span class="p">},</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_set_hour_minute_second</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">hour</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;year&#39;</span><span class="p">:</span> <span class="n">series</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
+         <span class="s1">&#39;month&#39;</span><span class="p">:</span> <span class="n">series</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">month</span><span class="p">,</span>
+         <span class="s1">&#39;day&#39;</span><span class="p">:</span> <span class="n">series</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day</span><span class="p">,</span>
+         <span class="s2">&quot;hour&quot;</span><span class="p">:</span> <span class="n">hour</span><span class="p">,</span>
+         <span class="s2">&quot;minute&quot;</span><span class="p">:</span> <span class="n">minute</span><span class="p">,</span>
+         <span class="s2">&quot;second&quot;</span><span class="p">:</span> <span class="n">second</span>
+         <span class="p">},</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_timeliness_todo</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">types</span><span class="p">,</span> <span class="n">dateFormat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeFormat</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns what to compute for each column in dict form, given the metric parameters.</span>
+
+<span class="sd">    :param columns:</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param value</span>
+<span class="sd">    :type value: str</span>
+<span class="sd">    :param dateFormat:</span>
+<span class="sd">    :type dateFormat: str</span>
+<span class="sd">    :param timeFormat:</span>
+<span class="sd">    :type timeFormat: str</span>
+<span class="sd">    :return: Dict containing what to run (pandas functions names or named lambdas) for each column.</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">dateFormat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">timeFormat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">dateFormat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">timeFormat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;Pass either a dateFormat or a timeFormat, &quot;</span> \
+                                                               <span class="s2">&quot;not both. &quot;</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">dateFormat</span><span class="p">:</span>
+        <span class="n">cvalue</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">dateFormat</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_timeliness_agg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">_to_datetime_cached</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dateFormat</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">s</span> <span class="o">&lt;</span> <span class="n">cvalue</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                <span class="n">_timeliness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_timeliness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;dateFormat&quot;</span><span class="p">,</span> <span class="n">dateFormat</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_timeliness_agg</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">_libs</span><span class="o">.</span><span class="n">tslib</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_timeliness_agg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">cvalue</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                <span class="n">_timeliness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_timeliness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;dateFormat&quot;</span><span class="p">,</span> <span class="n">dateFormat</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_timeliness_agg</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Type of a column on which the timeliness metric is run must be either timestamp, &quot;</span>
+                    <span class="s2">&quot;or string, if the metric is being run on dateFormat.&quot;</span><span class="p">)</span>
+                <span class="n">exit</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">timeFormat</span><span class="p">:</span>
+        <span class="n">cvalue</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">timeFormat</span><span class="p">)</span>
+
+        <span class="c1"># check if value contains a date and not only hours, minutes, seconds</span>
+        <span class="n">has_date</span> <span class="o">=</span> <span class="n">_contains_date</span><span class="p">(</span><span class="n">timeFormat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">has_date</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_timeliness_agg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="n">_to_datetime_cached</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">s</span> <span class="o">&lt;</span> <span class="n">cvalue</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                    <span class="n">_timeliness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_timeliness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;timeFormat&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                    <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_timeliness_agg</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">_libs</span><span class="o">.</span><span class="n">tslib</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_timeliness_agg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">cvalue</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                    <span class="n">_timeliness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_timeliness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;timeFormat&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                    <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_timeliness_agg</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;Type of a column on which the timeliness metric is run must be either timestamp or string, if &quot;</span>
+                        <span class="s2">&quot;the metric is being run on a timeFormat&quot;</span><span class="p">)</span>
+                    <span class="n">exit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Set year, month, day of the series equal to today, so that confrontation between the series</span>
+<span class="sd">            and the &#39;value&#39; argument will only be about hours, months, days</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="s2">&quot;now&quot;</span><span class="p">)</span>
+            <span class="n">year</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">year</span>
+            <span class="n">month</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span>
+            <span class="n">day</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span>
+            <span class="n">cvalue</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">timeFormat</span><span class="p">)</span>
+            <span class="n">cvalue</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="n">second</span><span class="o">=</span><span class="n">cvalue</span><span class="o">.</span><span class="n">second</span><span class="p">,</span> <span class="n">hour</span><span class="o">=</span><span class="n">cvalue</span><span class="o">.</span><span class="n">hour</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="n">cvalue</span><span class="o">.</span><span class="n">minute</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="n">day</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="n">month</span><span class="p">,</span>
+                                  <span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_timeliness_agg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="n">_to_datetime_cached</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">)</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="n">_set_year_month_day</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">s</span> <span class="o">&lt;</span> <span class="n">cvalue</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                    <span class="n">_timeliness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_timeliness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;timeFormat&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                    <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_timeliness_agg</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">_libs</span><span class="o">.</span><span class="n">tslib</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_timeliness_agg</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+                        <span class="n">x</span> <span class="o">=</span> <span class="n">_set_year_month_day</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">cvalue</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                    <span class="n">_timeliness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_timeliness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;timeFormat&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                    <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_timeliness_agg</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;Type of a column on which the timeliness metric is run must be either timestamp or string, if &quot;</span>
+                        <span class="s2">&quot;the metric is being run on a timeFormat&quot;</span><span class="p">)</span>
+                    <span class="n">exit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">todo</span>
+
+
+<div class="viewcode-block" id="timeliness"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.timeliness">[docs]</a><span class="k">def</span> <span class="nf">timeliness</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dateFormat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeFormat</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the timeliness metric will be run and result returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+<span class="sd">    Use http://strftime.org/ directives to express formats.</span>
+
+<span class="sd">    :param columns: Columns on which to run the metric, columns of type string will be casted to timestamp</span>
+<span class="sd">        using the dateFormat or timeFormat argument.</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param value: Value used to run the metric, confronting values in the specified columns against it.</span>
+<span class="sd">    :type value: str</span>
+<span class="sd">    :param dateFormat: Format in which the value (and values in columns, if they are of string type) are; used</span>
+<span class="sd">        to cast columns if they contain dates as strings. Either dateFormat</span>
+<span class="sd">        or timeFormat must be passed, but not both. Use http://strftime.org/ directives to express formats.</span>
+<span class="sd">    :type dateFormat: str</span>
+<span class="sd">    :param timeFormat: Format in which the value (and values in columns, if they are of string type) are; used</span>
+<span class="sd">        to cast columns if they contain dates as strings. Either dateFormat</span>
+<span class="sd">        or timeFormat must be passed, but not both. Use http://strftime.org/ directives to express formats.</span>
+<span class="sd">    :type timeFormat: str</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">        this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">        run later.</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">dateFormat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">timeFormat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">dateFormat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">timeFormat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;Pass either a dateFormat or a timeFormat, not both.&quot;</span>
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;timeliness&quot;</span><span class="p">,</span> <span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="n">columns</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">value</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">dateFormat</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;dateFormat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dateFormat</span>
+    <span class="k">elif</span> <span class="n">timeFormat</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;timeFormat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timeFormat</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_freshness_todo</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">types</span><span class="p">,</span> <span class="n">dateFormat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeFormat</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns what to compute for each column in dict form, given the metric parameters.</span>
+
+<span class="sd">    :param columns:</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param types: Dict mapping column names to type.</span>
+<span class="sd">    :type types: dict</span>
+<span class="sd">    :param dateFormat:</span>
+<span class="sd">    :type dateFormat: str</span>
+<span class="sd">    :param timeFormat:</span>
+<span class="sd">    :type timeFormat: str</span>
+<span class="sd">    :return: Dict containing what to run (pandas functions names or named lambdas) for each column.</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span><span class="n">dateFormat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">timeFormat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">dateFormat</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">timeFormat</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">&quot;Pass either a dateFormat or a timeFormat, &quot;</span> \
+                                                               <span class="s2">&quot;not both. &quot;</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">dateFormat</span><span class="p">:</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_freshness_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">_to_datetime_cached</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">dateFormat</span><span class="p">)</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">_set_hour_minute_second</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;timedelta64[D]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                <span class="n">_freshness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_freshness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;dateFormat&quot;</span><span class="p">,</span> <span class="n">dateFormat</span><span class="p">))</span>
+                <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_freshness_agg</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">_libs</span><span class="o">.</span><span class="n">tslib</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_freshness_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="n">_set_hour_minute_second</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;timedelta64[D]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                <span class="n">_freshness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_freshness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;dateFormat&quot;</span><span class="p">,</span> <span class="n">dateFormat</span><span class="p">))</span>
+                <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_freshness_agg</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Type of a column on which the freshness metric is run must be either timestamp &quot;</span>
+                    <span class="s2">&quot;or string, if the metric is being run on dateFormat.&quot;</span><span class="p">)</span>
+                <span class="n">exit</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">timeFormat</span><span class="p">:</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+        <span class="c1"># check if value contains a date and not only hours, minutes, seconds</span>
+        <span class="n">has_date</span> <span class="o">=</span> <span class="n">_contains_date</span><span class="p">(</span><span class="n">timeFormat</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">has_date</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the time format also contains a date it means the user is also interested in comparing years, months, days, </span>
+<span class="sd">            etc.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_freshness_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="n">_to_datetime_cached</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;timedelta64[s]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                    <span class="n">_freshness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_freshness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;timeFormat&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">))</span>
+                    <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_freshness_agg</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">_libs</span><span class="o">.</span><span class="n">tslib</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_freshness_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;timedelta64[s]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                    <span class="n">_freshness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_freshness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;timeFormat&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">))</span>
+                    <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_freshness_agg</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;Type of a column on which the freshness metric is run must be either timestamp &quot;</span>
+                        <span class="s2">&quot;or string, if the metric is being run on dateFormat.&quot;</span><span class="p">)</span>
+                    <span class="n">exit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            If the timestamp has no date the user is not interested in differences that consider years, months, days, but</span>
+<span class="sd">            only hours, minutes, seconds.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">year</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">year</span>
+            <span class="n">month</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span>
+            <span class="n">day</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">day</span>
+
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_freshness_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="n">_to_datetime_cached</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">)</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="n">_set_year_month_day</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;timedelta64[s]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                    <span class="n">_freshness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_freshness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;timeFormat&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">))</span>
+                    <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_freshness_agg</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">types</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">==</span> <span class="n">pd</span><span class="o">.</span><span class="n">_libs</span><span class="o">.</span><span class="n">tslib</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">:</span>
+                    <span class="k">def</span> <span class="nf">_freshness_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="n">_set_year_month_day</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;timedelta64[s]&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                    <span class="n">_freshness_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_freshness_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="s2">&quot;timeFormat&quot;</span><span class="p">,</span> <span class="n">timeFormat</span><span class="p">))</span>
+                    <span class="n">todo</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_freshness_agg</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;Type of a column on which the freshness metric is run must be either timestamp &quot;</span>
+                        <span class="s2">&quot;or string, if the metric is being run on dateFormat.&quot;</span><span class="p">)</span>
+                    <span class="n">exit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">todo</span>
+
+
+<div class="viewcode-block" id="freshness"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.freshness">[docs]</a><span class="k">def</span> <span class="nf">freshness</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dateFormat</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeFormat</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the freshness metric will be run and result returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+<span class="sd">    Use http://strftime.org/ directives to express formats.</span>
+
+<span class="sd">    :param columns: Columns on which to run the metric, columns of type string will be casted to timestamp</span>
+<span class="sd">        using the dateFormat or timeFormat argument.</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param dateFormat: Format in which the values in columns are if those columns are of type string; otherwise they must</span>
+<span class="sd">        be of type timestamp. Use this parameter if you are interested in a result in terms of days.</span>
+<span class="sd">        Either dateFormat or timeFormat must be passed, but not both.</span>
+<span class="sd">        Use http://strftime.org/ directives to express formats.</span>
+<span class="sd">    :type dateFormat: str</span>
+<span class="sd">    :param timeFormat: Format in which the values in columns are if those columns are of type string; otherwise they must</span>
+<span class="sd">        be of type timestamp. Use this parameter if you are interested in results in terms of seconds.</span>
+<span class="sd">        Either dateFormat or timeFormat must be passed, but not both.</span>
+<span class="sd">        Use http://strftime.org/ directives to express formats.</span>
+<span class="sd">    :type timeFormat: str</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">        this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">        run later.</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;freshness&quot;</span><span class="p">,</span> <span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="n">columns</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">dateFormat</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;dateFormat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dateFormat</span>
+    <span class="k">elif</span> <span class="n">timeFormat</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;timeFormat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">timeFormat</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_and_conditions_as_columns</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes a boolean series given conditions of columns on the dataframes, representing</span>
+<span class="sd">    what rows are passing the condition.</span>
+
+<span class="sd">    :param conditions:</span>
+<span class="sd">    :type conditions: list</span>
+<span class="sd">    :param df:</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Boolean series representing what rows are passing the conditions, can be used as indices to</span>
+<span class="sd">        get those rows from the df.</span>
+<span class="sd">    :rtype: Series</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># add first condition</span>
+    <span class="n">cond</span> <span class="o">=</span> <span class="n">conditions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;casted_to&quot;</span> <span class="ow">in</span> <span class="n">cond</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;gt&quot;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lt&quot;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;eq&quot;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;gt&quot;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]]</span> <span class="o">&gt;</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lt&quot;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]]</span> <span class="o">&lt;</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;eq&quot;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]]</span> <span class="o">==</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+
+    <span class="c1"># add the rest</span>
+    <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="k">if</span> <span class="s2">&quot;casted_to&quot;</span> <span class="ow">in</span> <span class="n">cond</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;gt&quot;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lt&quot;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;eq&quot;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;gt&quot;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]]</span> <span class="o">&gt;</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;lt&quot;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]]</span> <span class="o">&lt;</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;eq&quot;</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]]</span> <span class="o">==</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_constraint_compute</span><span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">then</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the metric result.</span>
+
+<span class="sd">    :param when:</span>
+<span class="sd">    :type when: list</span>
+<span class="sd">    :param then:</span>
+<span class="sd">    :type then: list</span>
+<span class="sd">    :param conditions:</span>
+<span class="sd">    :type conditions: list</span>
+<span class="sd">    :param df:</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Result of the metric.</span>
+<span class="sd">    :rtype: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># filter if needed</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Using _nan_constraint_filler is needed to make it so that pandas will groupby </span>
+<span class="sd">    also considering None values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">conditions</span><span class="p">:</span>
+        <span class="n">conds</span> <span class="o">=</span> <span class="n">_and_conditions_as_columns</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">conds</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;_none_constraint_filler&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;_none_constraint_filler&quot;</span><span class="p">)</span>
+
+    <span class="c1"># if no rows make it after the filtering return</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="c1"># create named lambdas for each &#39;then&#39; column</span>
+    <span class="n">aggs_lambdas</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">then</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replacing _nan_constraint_filler back with None is needed to have the same semantics</span>
+<span class="sd">        between sql/pyspark and pandas.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_constraint_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_constraint_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">nunique</span><span class="p">()</span>
+
+        <span class="n">_constraint_agg</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s2">&quot;_constraint_agg_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">col</span>
+        <span class="n">aggs_lambdas</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_constraint_agg</span><span class="p">]</span>
+
+    <span class="c1"># group by &quot;when&quot; and get nuniques for each &quot;then&quot; column</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">when</span><span class="p">)</span>
+    <span class="n">nuniques</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">aggs_lambdas</span><span class="p">)</span>
+    <span class="n">nuniques</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">nuniques</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">nuniques</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">when</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># get counts for each group</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">)</span>
+    <span class="n">counts</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">when</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">groups</span>
+
+    <span class="c1"># join nuniques and counts to have counts for each groups</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">nuniques</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="n">when</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="n">when</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">nuniques</span>
+    <span class="k">del</span> <span class="n">counts</span>
+
+    <span class="c1"># query checking that every unique for every &quot;then&quot; is 1</span>
+    <span class="n">querystring</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;_constraint_agg_</span><span class="si">%s</span><span class="s2"> == 1&quot;</span> <span class="o">%</span> <span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">then</span><span class="p">]</span>
+    <span class="n">querystring</span> <span class="o">=</span> <span class="s2">&quot; and &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">querystring</span><span class="p">)</span>
+
+    <span class="n">passing_rows</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">querystring</span><span class="p">)[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">total_rows</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">passing_rows</span> <span class="o">/</span> <span class="n">total_rows</span>
+
+
+<div class="viewcode-block" id="constraint"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.constraint">[docs]</a><span class="k">def</span> <span class="nf">constraint</span><span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">then</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the constraint metric will be run and result returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+
+<span class="sd">    :param when: A list of columns in the df to use as the precondition of a functional constraint. No column</span>
+<span class="sd">        should be in both when and then.</span>
+<span class="sd">    :param then: A list of columns in the df to use as the postcondition of a functional constraint. No column</span>
+<span class="sd">        should be in both when and then.</span>
+<span class="sd">    :param conditions: Conditions on which to filter data before applying the metric.</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">        this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">        run later.</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;constraint&quot;</span><span class="p">,</span> <span class="s2">&quot;when&quot;</span><span class="p">:</span> <span class="n">when</span><span class="p">,</span> <span class="s2">&quot;then&quot;</span><span class="p">:</span> <span class="n">then</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">conditions</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;conditions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conditions</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_rule_compute</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the metric result.</span>
+<span class="sd">    :param conditions:</span>
+<span class="sd">    :type conditions: list</span>
+<span class="sd">    :param df:</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Result of the metric.</span>
+<span class="sd">    :rtype: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">filtering_conditions</span> <span class="o">=</span> <span class="n">_and_conditions_as_columns</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">filtering_conditions</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">res</span>
+
+
+<div class="viewcode-block" id="rule"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.rule">[docs]</a><span class="k">def</span> <span class="nf">rule</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the rule metric will be run and result returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+
+<span class="sd">    :param conditions: Conditions on which to run the metric.</span>
+<span class="sd">    :type conditions: list</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">        this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;rule&quot;</span><span class="p">,</span> <span class="s2">&quot;conditions&quot;</span><span class="p">:</span> <span class="n">conditions</span><span class="p">}</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_remove_duplicate_groupby_aggs</span><span class="p">(</span><span class="n">aggs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Removes duplicate aggregations from a dict mapping columns</span>
+<span class="sd">    to named lambdas to compute, only one copy of lambdas named</span>
+<span class="sd">    the same way will be kept.</span>
+
+<span class="sd">    :param aggs:</span>
+<span class="sd">    :type aggs: list</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># iterate over dicts, getting lists of stuff to do for each column</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">aggs</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="c1"># remove duplicate names</span>
+        <span class="n">aggs</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">aggs</span><span class="p">[</span><span class="n">col</span><span class="p">]))</span>
+
+        <span class="c1"># remove duplicate custom lambdas</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">aggs</span><span class="p">[</span><span class="n">col</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;__call__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s2">&quot;__name__&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                    <span class="n">names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+                    <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="n">aggs</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp</span>
+
+
+<span class="k">def</span> <span class="nf">_grouby_aggregations</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns functions to compute for each column, given the conditions.</span>
+
+<span class="sd">    :param conditions: List of dictionaries which represent &quot;having&quot; conditions, i.e.</span>
+<span class="sd">        having min(col1) &gt; 5.</span>
+<span class="sd">    :type conditions: list</span>
+<span class="sd">    :param columns: Columns on which the group by is made.</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :return: A dict mapping each column to named lambdas to compute on that column, which results</span>
+<span class="sd">        will be later required to check on the conditions in the &quot;conditions&quot; parameter.</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aggs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conditions</span><span class="p">:</span>
+        <span class="n">column</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span> <span class="ow">and</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]</span>
+        <span class="n">aggregator</span> <span class="o">=</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="s2">&quot;aggregator&quot;</span> <span class="ow">in</span> <span class="n">cond</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">aggs</span><span class="p">:</span>
+            <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;casted_to&quot;</span> <span class="ow">in</span> <span class="n">cond</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span> <span class="ow">and</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">size</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;sum&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Aggregator </span><span class="si">%s</span><span class="s2"> not recognized&quot;</span> <span class="o">%</span> <span class="n">aggregator</span><span class="p">)</span>
+                <span class="n">exit</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span> <span class="ow">and</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">size</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;min&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;max&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;avg&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">aggregator</span> <span class="o">==</span> <span class="s2">&quot;sum&quot;</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">_groupby_agg</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">to_replace</span><span class="o">=</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+                <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_groupby_agg</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Aggregator </span><span class="si">%s</span><span class="s2"> not recognized&quot;</span> <span class="o">%</span> <span class="n">aggregator</span><span class="p">)</span>
+                <span class="n">exit</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span> <span class="ow">and</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+            <span class="n">aggregator</span> <span class="o">=</span> <span class="s2">&quot;size&quot;</span>
+
+        <span class="n">aggs</span><span class="p">[</span><span class="n">column</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;_groupby_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">aggregator</span><span class="p">))</span>
+    <span class="n">_remove_duplicate_groupby_aggs</span><span class="p">(</span><span class="n">aggs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">aggs</span>
+
+
+<span class="k">def</span> <span class="nf">_grouprule_aggs_filter</span><span class="p">(</span><span class="n">having</span><span class="p">,</span> <span class="n">columns</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given (having) conditions, return what to filter on as a string, to be used</span>
+<span class="sd">    after groupbys as grouped.query(string returned by this function).</span>
+
+<span class="sd">    :param having:</span>
+<span class="sd">    :type having: list</span>
+<span class="sd">    :param columns: Columns on which the group by is made.</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :return: String to be used on a df.query to filter based on the &quot;having&quot; conditions.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># add first condition</span>
+    <span class="n">cond</span> <span class="o">=</span> <span class="n">having</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">operator_map</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">operator_map</span><span class="p">[</span><span class="s2">&quot;gt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&gt;&quot;</span>
+    <span class="n">operator_map</span><span class="p">[</span><span class="s2">&quot;lt&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&lt;&quot;</span>
+    <span class="n">operator_map</span><span class="p">[</span><span class="s2">&quot;eq&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;==&quot;</span>
+    <span class="n">first_operator</span> <span class="o">=</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span> <span class="ow">and</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;_groupby_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;size&quot;</span><span class="p">,</span> <span class="n">operator_map</span><span class="p">[</span><span class="n">first_operator</span><span class="p">],</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s2">&quot;_groupby_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">],</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">],</span> <span class="n">operator_map</span><span class="p">[</span><span class="n">first_operator</span><span class="p">],</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+
+    <span class="c1"># add the rest</span>
+    <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">having</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="n">operator</span> <span class="o">=</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;operator&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;count&quot;</span> <span class="ow">and</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">+</span> <span class="s2">&quot; and _groupby_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;size&quot;</span><span class="p">,</span> <span class="n">operator_map</span><span class="p">[</span><span class="n">operator</span><span class="p">],</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">result</span> <span class="o">+</span> <span class="s2">&quot; and _groupby_agg_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;column&quot;</span><span class="p">],</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;aggregator&quot;</span><span class="p">],</span> <span class="n">operator_map</span><span class="p">[</span><span class="n">operator</span><span class="p">],</span> <span class="n">cond</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_grouprule_compute</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">having</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the metric result.</span>
+<span class="sd">    :param columns:</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param conditions:</span>
+<span class="sd">    :type conditions: list</span>
+<span class="sd">    :param having:</span>
+<span class="sd">    :type having: list</span>
+<span class="sd">    :param df:</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Result of the metric.</span>
+<span class="sd">    :rtype: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># filter if needed</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Replacing _nan_constraint_filler back with None is needed to have the same semantics</span>
+<span class="sd">    between sql/pyspark and pandas.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">conditions</span><span class="p">:</span>
+        <span class="n">conds</span> <span class="o">=</span> <span class="n">_and_conditions_as_columns</span><span class="p">(</span><span class="n">conditions</span><span class="p">,</span> <span class="n">df</span><span class="p">)</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">conds</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;_none_grouprule_filler&quot;</span><span class="p">)</span>
+
+    <span class="c1"># if no rows make it after the filtering return</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span>
+    <span class="n">tmp</span> <span class="o">=</span> <span class="n">groups</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">_grouby_aggregations</span><span class="p">(</span><span class="n">having</span><span class="p">,</span> <span class="n">columns</span><span class="p">))</span>
+    <span class="n">tmp</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">droplevel</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">tmp</span>
+    <span class="n">total_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">passing_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">_grouprule_aggs_filter</span><span class="p">(</span><span class="n">having</span><span class="p">,</span> <span class="n">columns</span><span class="p">))</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">passing_groups</span> <span class="o">/</span> <span class="n">total_groups</span>
+
+
+<div class="viewcode-block" id="grouprule"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.grouprule">[docs]</a><span class="k">def</span> <span class="nf">grouprule</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">having</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the groupRule metric will be run and result returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+
+<span class="sd">    :param columns: Columns on which to run the metric, grouping data.</span>
+<span class="sd">    :type columns: list</span>
+<span class="sd">    :param conditions: Conditions on which to run the metric, filtering data before grouping, can be None.</span>
+<span class="sd">    :type conditions: list</span>
+<span class="sd">    :param having: Conditions to apply to groups.</span>
+<span class="sd">    :type having: list</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">        this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">        run later.</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;groupRule&quot;</span><span class="p">,</span> <span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="n">columns</span><span class="p">,</span> <span class="s2">&quot;having&quot;</span><span class="p">:</span> <span class="n">having</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">conditions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;conditions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">conditions</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_entropy_compute</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the metric result.</span>
+
+<span class="sd">    :param column:</span>
+<span class="sd">    :type column: str/int</span>
+<span class="sd">    :param df:</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Result of the metric.</span>
+<span class="sd">    :rtype: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">value</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">dropna</span><span class="p">(),</span> <span class="n">return_counts</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">norm_counts</span> <span class="o">=</span> <span class="n">counts</span> <span class="o">/</span> <span class="n">counts</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">norm_counts</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">norm_counts</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="entropy"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.entropy">[docs]</a><span class="k">def</span> <span class="nf">entropy</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the entropy metric will be run and result returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+
+<span class="sd">    :param column: Column on which to run the metric.</span>
+<span class="sd">    :type column: str/int</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">        this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">        run later.</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;entropy&quot;</span><span class="p">,</span> <span class="s2">&quot;column&quot;</span><span class="p">:</span> <span class="n">column</span><span class="p">}</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+
+
+<span class="k">def</span> <span class="nf">_mutual_info_compute</span><span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">then</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the metric results.</span>
+
+<span class="sd">    :param when:</span>
+<span class="sd">    :type when: str/int</span>
+<span class="sd">    :param then:</span>
+<span class="sd">    :type then: str/int</span>
+<span class="sd">    :param df:</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Result of the metric.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">when</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">())</span> <span class="o">|</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">then</span><span class="p">]</span><span class="o">.</span><span class="n">isna</span><span class="p">())</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="o">~</span><span class="n">index</span>
+    <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">mutual_info_score</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">when</span><span class="p">][</span><span class="n">index</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">then</span><span class="p">][</span><span class="n">index</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+
+<div class="viewcode-block" id="mutual_info"><a class="viewcode-back" href="../../../haychecker.chc.html#haychecker.chc.metrics.mutual_info">[docs]</a><span class="k">def</span> <span class="nf">mutual_info</span><span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="n">then</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    If a df is passed, the mutual_info metric will be run and result returned</span>
+<span class="sd">    as a list of scores, otherwise an instance of the Task class containing this</span>
+<span class="sd">    metric wil be returned, to be later run (possibly after adding to it other tasks/metrics).</span>
+
+<span class="sd">    :param when: First column on which to compute MI.</span>
+<span class="sd">    :type when: str/int</span>
+<span class="sd">    :param then: Second column on which to compute MI.</span>
+<span class="sd">    :type then: str/int</span>
+<span class="sd">    :param df: Dataframe on which to run the metric, None to have this function return a Task instance containing</span>
+<span class="sd">        this metric to be run later.</span>
+<span class="sd">    :type df: DataFrame</span>
+<span class="sd">    :return: Either a list of scores or a Task instance containing this metric (with these parameters) to be</span>
+<span class="sd">        run later.</span>
+<span class="sd">    :rtype: list/Task</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># make a dict representing the parameters</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;metric&quot;</span><span class="p">:</span> <span class="s2">&quot;mutual_info&quot;</span><span class="p">,</span> <span class="s2">&quot;when&quot;</span><span class="p">:</span> <span class="n">when</span><span class="p">,</span> <span class="s2">&quot;then&quot;</span><span class="p">:</span> <span class="n">then</span><span class="p">}</span>
+    <span class="c1"># create tak containing parameters</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">task</span><span class="o">.</span><span class="n">Task</span><span class="p">([</span><span class="n">params</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">df</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">t</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">df</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;scores&quot;</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Jacopo Gobbi, Kateryna Konotopska.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.0.1',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
